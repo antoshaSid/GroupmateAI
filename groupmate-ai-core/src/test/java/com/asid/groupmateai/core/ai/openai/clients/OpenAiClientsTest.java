@@ -24,7 +24,7 @@ import static io.github.sashirestela.openai.domain.assistant.AssistantTool.FILE_
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = { OpenAiClientConfiguration.class, ThreadOpenAiClient.class, VectorStoreOpenAiClient.class, FileOpenAiClient.class })
-public class TestOpenAiClients {
+public class OpenAiClientsTest {
 
     private static final String ASSISTANT_ID = "asst_qOwNbEcb4SbB1hEjO5HNH2tU";
 
