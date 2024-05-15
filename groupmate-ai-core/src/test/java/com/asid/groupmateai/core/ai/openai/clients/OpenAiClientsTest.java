@@ -11,6 +11,7 @@ import io.github.sashirestela.openai.domain.file.FileResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
@@ -26,7 +27,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(classes = { OpenAiClientConfiguration.class, ThreadOpenAiClient.class, VectorStoreOpenAiClient.class, FileOpenAiClient.class })
 public class OpenAiClientsTest {
 
-    private static final String ASSISTANT_ID = "asst_qOwNbEcb4SbB1hEjO5HNH2tU";
+    @Value("${OPENAI_ASSISTANT_ID}")
+    private String assistantId;
 
     @Autowired
     private FileOpenAiClient fileOpenAiClient;
@@ -63,7 +65,7 @@ public class OpenAiClientsTest {
             assertNotNull(threadMessage.getId());
 
             final ThreadRunRequest runRequest = ThreadRunRequest.builder()
-                .assistantId(ASSISTANT_ID)
+                .assistantId(assistantId)
                 .tool(FILE_SEARCH)
                 .build();
 
