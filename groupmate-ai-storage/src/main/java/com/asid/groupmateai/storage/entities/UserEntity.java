@@ -1,9 +1,6 @@
 package com.asid.groupmateai.storage.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,4 +15,8 @@ public class UserEntity {
     @Id
     @Column(name = "chat_id")
     private Long chatId;
+
+    @Column(name = "user_state")
+    @Enumerated(EnumType.STRING)
+    private UserState userState;
 }

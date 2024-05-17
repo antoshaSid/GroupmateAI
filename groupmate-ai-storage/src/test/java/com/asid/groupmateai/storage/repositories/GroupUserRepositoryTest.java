@@ -1,12 +1,11 @@
 package com.asid.groupmateai.storage.repositories;
 
+import com.asid.groupmateai.storage.TestStorageModuleConfiguration;
 import com.asid.groupmateai.storage.entities.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Collection;
@@ -15,9 +14,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@EntityScan(basePackages = "com.asid.groupmateai.storage.entities")
-@EnableJpaRepositories(basePackages = "com.asid.groupmateai.storage.repositories")
-@ContextConfiguration(classes = { UserRepository.class, GroupRepository.class, GroupUserRepository.class })
+@ContextConfiguration(classes = TestStorageModuleConfiguration.class)
 class GroupUserRepositoryTest {
 
     private static final Long USER_CHAT_ID = 1L;
@@ -37,7 +34,7 @@ class GroupUserRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        this.userEntity = userRepository.saveAndFlush(new UserEntity(USER_CHAT_ID));
+        this.userEntity = userRepository.saveAndFlush(new UserEntity(USER_CHAT_ID, UserState.IDLE));
         assertNotNull(this.userEntity.getChatId());
 
         this.groupEntity = groupRepository.saveAndFlush(GroupEntity.builder()
@@ -51,7 +48,6 @@ class GroupUserRepositoryTest {
             .group(groupEntity)
             .threadId("test_thread_id")
             .userRole(UserRole.ADMIN)
-            .userState(UserState.IDLE)
             .build());
         assertNotNull(this.groupUserEntity.getUserChatId());
     }

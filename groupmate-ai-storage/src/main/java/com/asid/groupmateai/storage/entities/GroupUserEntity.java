@@ -30,10 +30,6 @@ public class GroupUserEntity {
     @Column(name = "thread_id")
     private String threadId;
 
-    @Column(name = "user_state")
-    @Enumerated(EnumType.STRING)
-    private UserState userState;
-
     @Column(name = "user_role")
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
