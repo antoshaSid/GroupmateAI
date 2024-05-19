@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collection;
+
 @Entity
 @Table(name = "GROUPS")
 @NoArgsConstructor
@@ -20,6 +22,9 @@ public class GroupEntity {
 
     private String name;
 
-    @Column(name = "vector_store_id")
+    @Column(name = "vector_store_id", unique = true, nullable = false)
     private String vectorStoreId;
+
+    @OneToMany(mappedBy = "group", cascade = CascadeType.REMOVE)
+    private Collection<GroupUserEntity> groupUsers;
 }

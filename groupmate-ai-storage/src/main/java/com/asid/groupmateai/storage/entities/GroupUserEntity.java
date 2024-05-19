@@ -27,7 +27,7 @@ public class GroupUserEntity {
     @JoinColumn(name = "group_id")
     private GroupEntity group;
 
-    @Column(name = "thread_id")
+    @Column(name = "thread_id", unique = true, nullable = false)
     private String threadId;
 
     @Column(name = "user_role")

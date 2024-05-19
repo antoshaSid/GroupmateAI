@@ -19,4 +19,7 @@ public class UserEntity {
     @Column(name = "user_state")
     @Enumerated(EnumType.STRING)
     private UserState userState;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private GroupUserEntity groupUserEntity;
 }
