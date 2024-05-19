@@ -1,6 +1,6 @@
 package com.asid.groupmateai.core.ai.openai.clients;
 
-import com.asid.groupmateai.core.ai.openai.clients.configs.OpenAiClientConfiguration;
+import com.asid.groupmateai.core.TestCoreModuleConfiguration;
 import io.github.sashirestela.cleverclient.Event;
 import io.github.sashirestela.openai.common.DeletedObject;
 import io.github.sashirestela.openai.domain.assistant.Thread;
@@ -19,12 +19,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static io.github.sashirestela.openai.domain.assistant.AssistantTool.FILE_SEARCH;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = { OpenAiClientConfiguration.class, ThreadOpenAiClient.class, VectorStoreOpenAiClient.class, FileOpenAiClient.class })
+@SpringBootTest(classes = TestCoreModuleConfiguration.class)
 public class OpenAiClientsTest {
 
     @Value("${OPENAI_ASSISTANT_ID}")
@@ -139,17 +140,7 @@ public class OpenAiClientsTest {
     }
 
     private String createThreadWithVectorStore(final String vectorStoreId) {
-        final ToolResourceFull toolResource = ToolResourceFull.builder()
-            .fileSearch(ToolResourceFull.FileSearch.builder()
-                .vectorStoreId(vectorStoreId)
-                .build())
-            .build();
-        final ThreadRequest threadRequest = ThreadRequest.builder()
-            .toolResources(toolResource)
-            .build();
-
-        final Thread thread = threadOpenAiClient.createThread(threadRequest)
-            .join();
+        final Thread thread = threadOpenAiClient.createThreadWithVectorStore(vectorStoreId).join();
 
         assertNotNull(thread.getId());
         assertEquals(vectorStoreId, thread.getToolResources()
@@ -159,6 +150,14 @@ public class OpenAiClientsTest {
             .findFirst()
             .orElse(""));
         System.out.println("Thread was created with id: " + thread.getId());
+
+        final List<String> vectorStoreIds = thread.getToolResources()
+            .getFileSearch()
+            .getVectorStoreIds();
+
+        assertEquals(1, vectorStoreIds.size());
+
+        System.out.printf("Vector Store (%s) was attached to thread: %s%n", vectorStoreIds.get(0), thread.getId());
 
         return thread.getId();
     }
