@@ -36,6 +36,11 @@
             <artifactId>simple-openai</artifactId>
             <version>${openai.client.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.asid</groupId>
+            <artifactId>groupmate-ai-storage</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
