@@ -26,6 +26,7 @@ import java.util.stream.Stream;
  * Messages
  * <p>
  * 1. Create message
+ * 2. Delete message | TODO: Not implemented yet
  * <p>
  * Runs
  * <p>
@@ -47,6 +48,23 @@ public class ThreadOpenAiClient extends OpenAiClient {
             .create(threadRequest)
             .thenApply(thread -> {
                 log.debug("Thread was created: {}", thread.getId());
+                return thread;
+            });
+    }
+
+    public CompletableFuture<Thread> createThreadWithVectorStore(final String vectorStoreId) {
+        final ToolResourceFull toolResource = ToolResourceFull.builder()
+            .fileSearch(ToolResourceFull.FileSearch.builder()
+                .vectorStoreId(vectorStoreId)
+                .build())
+            .build();
+        final ThreadRequest threadRequest = ThreadRequest.builder()
+            .toolResources(toolResource)
+            .build();
+
+        return this.createThread(threadRequest)
+            .thenApply(thread -> {
+                log.debug("Vector Store ({}) was attached to thread: {}", vectorStoreId, thread.getId());
                 return thread;
             });
     }
