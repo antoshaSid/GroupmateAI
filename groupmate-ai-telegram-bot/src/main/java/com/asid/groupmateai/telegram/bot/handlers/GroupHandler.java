@@ -4,7 +4,6 @@ import com.asid.groupmateai.core.services.GroupService;
 import com.asid.groupmateai.core.services.GroupUserService;
 import com.asid.groupmateai.core.services.UserService;
 import com.asid.groupmateai.storage.entities.GroupUserEntity;
-import com.asid.groupmateai.storage.entities.UserEntity;
 import com.asid.groupmateai.storage.entities.UserState;
 import com.asid.groupmateai.telegram.bot.handlers.callbacks.BackCallback;
 import com.asid.groupmateai.telegram.bot.handlers.callbacks.GroupCallback;
@@ -147,16 +146,16 @@ public class GroupHandler implements UpdateHandler {
             .getMetadata()
             .get("messageId");
 
-        Long groupId;
+        Long parsedGroupToken;
         try {
-            groupId = Long.valueOf(groupToken);
+            parsedGroupToken = Long.valueOf(groupToken);
         } catch (final NumberFormatException e) {
             telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.incorrect.format"));
             return;
         }
 
-        if (groupService.groupExists(groupId)) {
-            final GroupUserEntity groupUser = groupUserService.addUserToGroup(groupId, chatId);
+        if (groupService.groupExists(parsedGroupToken)) {
+            final GroupUserEntity groupUser = groupUserService.addUserToGroup(parsedGroupToken, chatId);
 
             userService.updateUserState(chatId, UserState.IDLE);
             telegramService.deleteMessage(chatId, Integer.valueOf(messageId));
@@ -164,7 +163,7 @@ public class GroupHandler implements UpdateHandler {
                 i18n.getMessage("group.welcome.message", groupUser.getGroup().getName()),
                 keyboardService.buildGroupWelcomeKeyboard());
         } else {
-            telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.group.not.exist"));
+            telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.group.does.not.exist"));
         }
     }
 }

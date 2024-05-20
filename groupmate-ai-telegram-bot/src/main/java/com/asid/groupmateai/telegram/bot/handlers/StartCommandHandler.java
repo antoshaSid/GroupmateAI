@@ -59,7 +59,7 @@ public class StartCommandHandler implements CommandHandler, UpdateHandler {
     @Override
     public void handleUpdate(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
-        GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+        final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
         UserEntity user = userService.getUser(chatId);
 
         if (user == null) {
