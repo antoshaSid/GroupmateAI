@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserState getUserState(Long chatId) {
+    public UserState getUserState(final Long chatId) {
         if (userExists(chatId)) {
             return getUser(chatId).getUserState();
         }

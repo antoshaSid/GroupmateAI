@@ -150,7 +150,7 @@ public class GroupHandler implements UpdateHandler {
         try {
             parsedGroupToken = Long.valueOf(groupToken);
         } catch (final NumberFormatException e) {
-            telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.incorrect.format"));
+            telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.incorrect.format.error"));
             return;
         }
 
@@ -163,7 +163,7 @@ public class GroupHandler implements UpdateHandler {
                 i18n.getMessage("group.welcome.message", groupUser.getGroup().getName()),
                 keyboardService.buildGroupWelcomeKeyboard());
         } else {
-            telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.group.does.not.exist"));
+            telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.group.does.not.exist.error"));
         }
     }
 }
