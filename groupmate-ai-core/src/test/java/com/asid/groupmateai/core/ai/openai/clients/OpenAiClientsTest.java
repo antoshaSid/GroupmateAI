@@ -1,11 +1,12 @@
 package com.asid.groupmateai.core.ai.openai.clients;
 
 import com.asid.groupmateai.core.TestCoreModuleConfiguration;
-import io.github.sashirestela.cleverclient.Event;
+import com.asid.groupmateai.core.services.UserThreadService;
 import io.github.sashirestela.openai.common.DeletedObject;
+import io.github.sashirestela.openai.domain.assistant.FileStatus;
 import io.github.sashirestela.openai.domain.assistant.Thread;
-import io.github.sashirestela.openai.domain.assistant.*;
-import io.github.sashirestela.openai.domain.assistant.events.EventName;
+import io.github.sashirestela.openai.domain.assistant.VectorStore;
+import io.github.sashirestela.openai.domain.assistant.VectorStoreFile;
 import io.github.sashirestela.openai.domain.file.FileRequest;
 import io.github.sashirestela.openai.domain.file.FileResponse;
 import org.junit.jupiter.api.Test;
@@ -20,9 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
-import static io.github.sashirestela.openai.domain.assistant.AssistantTool.FILE_SEARCH;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = TestCoreModuleConfiguration.class)
@@ -40,6 +39,9 @@ public class OpenAiClientsTest {
     @Autowired
     private VectorStoreOpenAiClient vectorStoreOpenAiClient;
 
+    @Autowired
+    private UserThreadService userThreadService;
+
     private String fileId;
     private String vectorStoreId;
     private String threadId;
@@ -54,26 +56,12 @@ public class OpenAiClientsTest {
             this.vectorStoreId = createVectorStoreWithFile(fileId);
             this.threadId = createThreadWithVectorStore(vectorStoreId);
 
-            final String myMessage = "Do you know how many subjects are on Monday?";
+            final String message = "Do you know how many subjects are on Monday?";
 
-            final ThreadMessageRequest threadMessageRequest = ThreadMessageRequest.builder()
-                .role(ThreadMessageRole.USER)
-                .content(myMessage)
-                .build();
+            final String response = userThreadService.generateResponse(threadId, message);
 
-            final ThreadMessage threadMessage = threadOpenAiClient.createThreadMessage(threadId, threadMessageRequest)
-                .join();
-            assertNotNull(threadMessage.getId());
-
-            final ThreadRunRequest runRequest = ThreadRunRequest.builder()
-                .assistantId(assistantId)
-                .tool(FILE_SEARCH)
-                .build();
-
-            final Stream<Event> runStream = threadOpenAiClient.createThreadRun(threadId, runRequest)
-                .join();
-
-            handleRunEvents(runStream);
+            assertTrue(response.contains("3 subjects"));
+            System.out.println("Thread was completed with response: " + response);
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -160,39 +148,5 @@ public class OpenAiClientsTest {
         System.out.printf("Vector Store (%s) was attached to thread: %s%n", vectorStoreIds.get(0), thread.getId());
 
         return thread.getId();
-    }
-
-    private void handleRunEvents(Stream<Event> runStream) {
-        final StringBuilder stringBuilder = new StringBuilder();
-        final boolean isThreadCompleted = runStream.peek(event -> {
-                if (event.getName()
-                    .equals(EventName.THREAD_MESSAGE_DELTA)) {
-                    final ThreadMessageDelta msgDelta = (ThreadMessageDelta) event.getData();
-                    final ThreadMessageContent content = msgDelta.getDelta()
-                        .getContent()
-                        .get(0);
-                    if (content instanceof ThreadMessageContent.TextContent textContent) {
-                        stringBuilder.append(textContent.getText()
-                            .getValue());
-                    }
-                } else if (event.getName()
-                    .equals(EventName.THREAD_RUN_FAILED)) {
-                    final ThreadRun runFailed = (ThreadRun) event.getData();
-                    final LastError error = runFailed.getLastError();
-
-                    System.out.println("Thread run failed. See stack trace for more details.");
-                    fail(String.format("Thread run failed with %s: %s",
-                        error.getCode().toString(), error.getMessage()));
-                }
-            })
-            .anyMatch(event -> event.getName()
-                .equals(EventName.THREAD_MESSAGE_COMPLETED));
-
-        final String generatedResponse = stringBuilder.toString();
-
-        assertTrue(isThreadCompleted);
-        assertTrue(generatedResponse.contains("3 subjects"));
-
-        System.out.println("Thread was completed with response: " + generatedResponse);
     }
 }
