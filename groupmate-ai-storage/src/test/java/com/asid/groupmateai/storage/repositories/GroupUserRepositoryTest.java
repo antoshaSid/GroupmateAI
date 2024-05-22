@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,7 +31,6 @@ class GroupUserRepositoryTest {
 
     private UserEntity userEntity;
     private GroupEntity groupEntity;
-    private GroupUserEntity groupUserEntity;
 
     @BeforeEach
     void setUp() {
@@ -43,13 +43,14 @@ class GroupUserRepositoryTest {
             .build());
         assertNotNull(this.groupEntity.getId());
 
-        this.groupUserEntity = groupUserRepository.saveAndFlush(GroupUserEntity.builder()
+        final GroupUserEntity groupUserEntity = groupUserRepository.saveAndFlush(GroupUserEntity.builder()
             .user(userEntity)
             .group(groupEntity)
             .threadId("test_thread_id")
             .userRole(UserRole.ADMIN)
+            .metadata(Collections.singletonMap("useQueryKeyboard", String.valueOf(false)))
             .build());
-        assertNotNull(this.groupUserEntity.getUserChatId());
+        assertNotNull(groupUserEntity.getUserChatId());
     }
 
     @Test
@@ -61,6 +62,8 @@ class GroupUserRepositoryTest {
         assertEquals(USER_CHAT_ID, actualEntity.getUserChatId());
         assertEquals(userEntity.getChatId(), actualEntity.getUser()
             .getChatId());
+        assertEquals(1, actualEntity.getMetadata().size());
+        assertFalse(Boolean.parseBoolean(actualEntity.getMetadata().get("useQueryKeyboard")));
 
         assertEquals(groupEntity.getId(), actualEntity.getGroup()
             .getId());

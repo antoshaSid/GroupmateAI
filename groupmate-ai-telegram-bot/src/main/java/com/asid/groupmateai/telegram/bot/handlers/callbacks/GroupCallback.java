@@ -8,7 +8,8 @@ public enum GroupCallback {
 
     CREATE_GROUP("create_group_callback"),
     JOIN_GROUP("join_group_callback"),
-    QUERY_LIST("query_list_callback"),
+    QUERY_LIST_ON("query_list_on_callback"),
+    QUERY_LIST_OFF("query_list_off_callback"),
     GROUP_SETTINGS("group_settings_callback"),
     CHANGE_GROUP_NAME("change_group_name_callback"),
     MANAGE_GROUP_FILES("manage_group_files_callback"),

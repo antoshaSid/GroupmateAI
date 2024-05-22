@@ -5,8 +5,12 @@ import com.asid.groupmateai.telegram.bot.handlers.callbacks.GroupCallback;
 import com.asid.groupmateai.telegram.bot.services.I18n;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 @Service
 public class KeyboardService {
@@ -38,10 +42,10 @@ public class KeyboardService {
             .build();
     }
 
-    public InlineKeyboardMarkup buildGroupWelcomeKeyboard() {
+    public InlineKeyboardMarkup buildGroupWelcomeKeyboard(final boolean useQueryKeyboard) {
         final InlineKeyboardButton queryListButton = InlineKeyboardButton.builder()
-            .text(i18n.getMessage("keyboard.button.query.list"))
-            .callbackData(GroupCallback.QUERY_LIST.getData())
+            .text(i18n.getMessage(useQueryKeyboard ? "keyboard.button.query.list.on" : "keyboard.button.query.list.off"))
+            .callbackData(useQueryKeyboard ? GroupCallback.QUERY_LIST_ON.getData() : GroupCallback.QUERY_LIST_OFF.getData())
             .build();
         final InlineKeyboardButton groupSettingsButton = InlineKeyboardButton.builder()
             .text(i18n.getMessage("keyboard.button.group.settings"))
@@ -98,5 +102,30 @@ public class KeyboardService {
             .keyboardRow(new InlineKeyboardRow(invitePeopleButton))
             .keyboardRow(new InlineKeyboardRow(backButton, leaveGroupButton))
             .build();
+    }
+
+    public ReplyKeyboardMarkup buildQueryKeyboard() {
+        final KeyboardButton scheduleForMondayQueryButton = KeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.query.schedule.for.monday"))
+            .build();
+        final KeyboardButton scheduleForTuesdayQueryButton = KeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.query.schedule.for.tuesday"))
+            .build();
+        final KeyboardButton scheduleForWednesdayQueryButton = KeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.query.schedule.for.wednesday"))
+            .build();
+        final KeyboardButton scheduleForWeekQueryButton = KeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.query.schedule.for.week"))
+            .build();
+
+        return ReplyKeyboardMarkup.builder()
+            .keyboardRow(new KeyboardRow(scheduleForMondayQueryButton, scheduleForTuesdayQueryButton, scheduleForWednesdayQueryButton))
+            .keyboardRow(new KeyboardRow(scheduleForWeekQueryButton))
+            .resizeKeyboard(true)
+            .build();
+    }
+
+    public ReplyKeyboardRemove removeQueryKeyboard() {
+        return new ReplyKeyboardRemove(true);
     }
 }

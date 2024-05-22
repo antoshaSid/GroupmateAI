@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+
 @Service
 @Transactional
 public class GroupUserServiceImpl implements GroupUserService {
@@ -55,6 +57,7 @@ public class GroupUserServiceImpl implements GroupUserService {
                 .group(group)
                 .threadId(threadId)
                 .userRole(UserRole.ADMIN)
+                .metadata(Collections.singletonMap("useQueryKeyboard", String.valueOf(false)))
                 .build();
 
             return groupUserRepository.save(groupUserEntity);
@@ -86,6 +89,7 @@ public class GroupUserServiceImpl implements GroupUserService {
                 .group(group)
                 .threadId(threadId)
                 .userRole(UserRole.USER)
+                .metadata(Collections.singletonMap("useQueryKeyboard", String.valueOf(false)))
                 .build();
 
             return groupUserRepository.save(groupUserEntity);

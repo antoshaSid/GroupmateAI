@@ -104,8 +104,8 @@ public class DefaultTelegramService implements TelegramService {
 
     @Override
     public void sendMessage(final Long chatId,
-                               final String text,
-                               final ReplyKeyboard keyboard) {
+                            final String text,
+                            final ReplyKeyboard keyboard) {
         try {
             final SendMessage message = SendMessage.builder()
                 .chatId(chatId)

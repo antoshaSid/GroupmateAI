@@ -60,7 +60,7 @@ public class GroupHandler implements UpdateHandler {
             switch (GroupCallback.getInstance(update)) {
                 case CREATE_GROUP -> this.handleCreateGroupCallback(update);
                 case JOIN_GROUP -> this.handleJoinGroupCallback(update);
-                case QUERY_LIST -> this.handleQueryListCallback(update);
+                case QUERY_LIST_ON, QUERY_LIST_OFF -> this.handleQueryListCallback(update);
                 case GROUP_SETTINGS -> this.handleGroupSettingsCallback(update);
                 case CHANGE_GROUP_NAME -> this.handleGroupChangeNameCallback(update);
             }
@@ -108,7 +108,36 @@ public class GroupHandler implements UpdateHandler {
     }
 
     private void handleQueryListCallback(final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+        final Integer messageId = telegramService.getMessageIdFromUpdate(update);
 
+        final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+        final String groupName = groupUser.getGroup().getName();
+        final boolean useQueryKeyboard = Boolean.parseBoolean(groupUser.getMetadata().get("useQueryKeyboard"));
+
+        if (!useQueryKeyboard) {
+
+            // Query keyboard: OFF -> ON
+            groupUser.getMetadata().put("useQueryKeyboard", String.valueOf(true));
+            groupUserService.updateGroupUser(groupUser);
+
+            telegramService.updateMessage(chatId, messageId,
+                i18n.getMessage("group.welcome.message", groupName),
+                keyboardService.buildGroupWelcomeKeyboard(true));
+            telegramService.sendMessage(chatId, i18n.getMessage("query.keyboard.turned.on.message"),
+                keyboardService.buildQueryKeyboard());
+        } else {
+
+            // Query keyboard: ON -> OFF
+            groupUser.getMetadata().put("useQueryKeyboard", String.valueOf(false));
+            groupUserService.updateGroupUser(groupUser);
+
+            telegramService.updateMessage(chatId, messageId,
+                i18n.getMessage("group.welcome.message", groupName),
+                keyboardService.buildGroupWelcomeKeyboard(false));
+            telegramService.sendMessage(chatId, i18n.getMessage("query.keyboard.turned.off.message"),
+                keyboardService.removeQueryKeyboard());
+        }
     }
 
     private void handleGroupSettingsCallback(final Update update) {
@@ -131,12 +160,12 @@ public class GroupHandler implements UpdateHandler {
                 i18n.getMessage("welcome.message", telegramService.getFirstNameFromUpdate(update)),
                 keyboardService.buildWelcomeKeyboard());
             case BACK_GROUP_SETTINGS -> {
-                final String groupName = groupUserService.getGroupUserByChatId(chatId)
-                    .getGroup()
-                    .getName();
+                final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+                final String groupName = groupUser.getGroup().getName();
+                final boolean useQueryKeyboard = Boolean.parseBoolean(groupUser.getMetadata().get("useQueryKeyboard"));
                 telegramService.updateMessage(chatId, messageId,
                     i18n.getMessage("group.welcome.message", groupName),
-                    keyboardService.buildGroupWelcomeKeyboard());
+                    keyboardService.buildGroupWelcomeKeyboard(useQueryKeyboard));
             }
             case BACK_CHANGE_GROUP_NAME -> telegramService.updateMessage(chatId, messageId,
                 i18n.getMessage("group.settings.message"),
@@ -160,7 +189,7 @@ public class GroupHandler implements UpdateHandler {
         telegramService.deleteMessage(chatId, Integer.valueOf(messageId));
         telegramService.sendMessage(chatId,
             i18n.getMessage("group.welcome.message", groupName),
-            keyboardService.buildGroupWelcomeKeyboard());
+            keyboardService.buildGroupWelcomeKeyboard(false));
     }
 
     private void handleGroupJoin(final Update update) {
@@ -185,7 +214,7 @@ public class GroupHandler implements UpdateHandler {
             telegramService.deleteMessage(chatId, Integer.valueOf(messageId));
             telegramService.sendMessage(chatId,
                 i18n.getMessage("group.welcome.message", groupUser.getGroup().getName()),
-                keyboardService.buildGroupWelcomeKeyboard());
+                keyboardService.buildGroupWelcomeKeyboard(false));
         } else {
             telegramService.sendMessage(chatId, i18n.getMessage(
                 "user.input.group.token.group.does.not.exist.error.message"));

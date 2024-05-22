@@ -1,10 +1,13 @@
 package com.asid.groupmateai.storage.entities;
 
+import com.asid.groupmateai.storage.utils.MapToJsonConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Map;
 
 @Entity
 @Table(name = "GROUP_USERS")
@@ -33,4 +36,7 @@ public class GroupUserEntity {
     @Column(name = "user_role")
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
+
+    @Convert(converter = MapToJsonConverter.class)
+    private Map<String, String> metadata;
 }

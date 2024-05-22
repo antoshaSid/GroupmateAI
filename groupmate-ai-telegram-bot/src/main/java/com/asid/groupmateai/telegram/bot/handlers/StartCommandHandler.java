@@ -74,9 +74,10 @@ public class StartCommandHandler implements CommandHandler, UpdateHandler {
         } else if (groupUser != null) {
 
             // START command is invoked by a user in a group
+            final boolean useQueryKeyboard = Boolean.parseBoolean(groupUser.getMetadata().get("useQueryKeyboard"));
             telegramService.sendMessage(chatId,
                 i18n.getMessage("group.welcome.message", groupUser.getGroup().getName()),
-                keyboardService.buildGroupWelcomeKeyboard());
+                keyboardService.buildGroupWelcomeKeyboard(useQueryKeyboard));
         } else {
 
             // START command is invoked by a user not in a group
