@@ -69,4 +69,34 @@ public class KeyboardService {
             .keyboardRow(new InlineKeyboardRow(backButton))
             .build();
     }
+
+    public InlineKeyboardMarkup buildGroupSettingsKeyboard() {
+        final InlineKeyboardButton changeGroupNameButton = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.change.group.name"))
+            .callbackData(GroupCallback.CHANGE_GROUP_NAME.getData())
+            .build();
+        final InlineKeyboardButton manageGroupFilesButton = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.manage.group.files"))
+            .callbackData(GroupCallback.MANAGE_GROUP_FILES.getData())
+            .build();
+        final InlineKeyboardButton invitePeopleButton = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.invite.people"))
+            .callbackData(GroupCallback.INVITE_PEOPLE.getData())
+            .build();
+        final InlineKeyboardButton backButton = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.back"))
+            .callbackData(BackCallback.BACK_GROUP_SETTINGS.getData())
+            .build();
+        final InlineKeyboardButton leaveGroupButton = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.leave.group"))
+            .callbackData(GroupCallback.LEAVE_GROUP.getData())
+            .build();
+
+        return InlineKeyboardMarkup.builder()
+            .keyboardRow(new InlineKeyboardRow(changeGroupNameButton))
+            .keyboardRow(new InlineKeyboardRow(manageGroupFilesButton))
+            .keyboardRow(new InlineKeyboardRow(invitePeopleButton))
+            .keyboardRow(new InlineKeyboardRow(backButton, leaveGroupButton))
+            .build();
+    }
 }

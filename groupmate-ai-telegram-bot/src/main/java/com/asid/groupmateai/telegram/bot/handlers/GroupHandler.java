@@ -3,6 +3,7 @@ package com.asid.groupmateai.telegram.bot.handlers;
 import com.asid.groupmateai.core.services.GroupService;
 import com.asid.groupmateai.core.services.GroupUserService;
 import com.asid.groupmateai.core.services.UserService;
+import com.asid.groupmateai.storage.entities.GroupEntity;
 import com.asid.groupmateai.storage.entities.GroupUserEntity;
 import com.asid.groupmateai.storage.entities.UserState;
 import com.asid.groupmateai.telegram.bot.handlers.callbacks.BackCallback;
@@ -61,6 +62,7 @@ public class GroupHandler implements UpdateHandler {
                 case JOIN_GROUP -> this.handleJoinGroupCallback(update);
                 case QUERY_LIST -> this.handleQueryListCallback(update);
                 case GROUP_SETTINGS -> this.handleGroupSettingsCallback(update);
+                case CHANGE_GROUP_NAME -> this.handleGroupChangeNameCallback(update);
             }
         } else if (BackCallback.isBackCallback(update)) {
             this.handleBackCallback(update);
@@ -69,6 +71,7 @@ public class GroupHandler implements UpdateHandler {
             switch (userService.getUserState(chatId)) {
                 case WAIT_FOR_GROUP_NAME -> this.handleGroupCreation(update);
                 case WAIT_FOR_GROUP_TOKEN -> this.handleGroupJoin(update);
+                case WAIT_FOR_NEW_GROUP_NAME -> this.handleGroupChangeName(update);
             }
         }
     }
@@ -109,7 +112,12 @@ public class GroupHandler implements UpdateHandler {
     }
 
     private void handleGroupSettingsCallback(final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+        final Integer messageId = telegramService.getMessageIdFromUpdate(update);
 
+        telegramService.updateMessage(chatId, messageId,
+            i18n.getMessage("group.settings.message"),
+            keyboardService.buildGroupSettingsKeyboard());
     }
 
     private void handleBackCallback(final Update update) {
@@ -179,5 +187,35 @@ public class GroupHandler implements UpdateHandler {
         } else {
             telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.group.does.not.exist.error"));
         }
+    }
+
+    private void handleGroupChangeNameCallback(final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+        final Integer messageId = telegramService.getMessageIdFromUpdate(update);
+        final Map<String, String> metadata = Collections.singletonMap("messageId", String.valueOf(messageId));
+
+        userService.updateUserState(chatId, UserState.WAIT_FOR_NEW_GROUP_NAME, metadata);
+        telegramService.updateMessage(chatId, messageId,
+            i18n.getMessage("user.input.new.group.name"),
+            keyboardService.buildBackKeyboard(BackCallback.BACK_CHANGE_GROUP_NAME.getData()));
+    }
+
+    private void handleGroupChangeName(final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+        final GroupEntity group = groupUserService.getGroupUserByChatId(chatId).getGroup();
+        final String newGroupName = telegramService.getMessageTextFromUpdate(update);
+        final String messageId = userService.getUser(chatId)
+            .getMetadata()
+            .get("messageId");
+
+        group.setName(newGroupName);
+        groupService.updateGroup(group);
+
+        userService.updateUserState(chatId, UserState.IDLE);
+        telegramService.deleteMessage(chatId, Integer.valueOf(messageId));
+        telegramService.sendMessage(chatId, i18n.getMessage("group.name.changed.successfully.message", newGroupName));
+        telegramService.sendMessage(chatId,
+            i18n.getMessage("group.settings.message"),
+            keyboardService.buildGroupSettingsKeyboard());
     }
 }

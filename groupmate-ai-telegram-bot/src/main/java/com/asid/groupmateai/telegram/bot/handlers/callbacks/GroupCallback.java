@@ -9,7 +9,11 @@ public enum GroupCallback {
     CREATE_GROUP("create_group_callback"),
     JOIN_GROUP("join_group_callback"),
     QUERY_LIST("query_list_callback"),
-    GROUP_SETTINGS("group_settings_callback");
+    GROUP_SETTINGS("group_settings_callback"),
+    CHANGE_GROUP_NAME("change_group_name_callback"),
+    MANAGE_GROUP_FILES("manage_group_files_callback"),
+    INVITE_PEOPLE("invite_people_callback"),
+    LEAVE_GROUP("leave_group_callback");
 
     GroupCallback(final String data) {
         this.data = data;
