@@ -123,19 +123,21 @@ public class GroupHandler implements UpdateHandler {
     private void handleBackCallback(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
         final Integer messageId = telegramService.getMessageIdFromUpdate(update);
-        final String groupName = groupUserService.getGroupUserByChatId(chatId)
-            .getGroup()
-            .getName();
 
         userService.updateUserState(chatId, UserState.IDLE);
 
         switch (BackCallback.getInstance(update)) {
             case BACK_CREATE_GROUP, BACK_JOIN_GROUP -> telegramService.updateMessage(chatId, messageId,
-                i18n.getMessage("welcome.message"),
+                i18n.getMessage("welcome.message", telegramService.getFirstNameFromUpdate(update)),
                 keyboardService.buildWelcomeKeyboard());
-            case BACK_GROUP_SETTINGS -> telegramService.updateMessage(chatId, messageId,
-                i18n.getMessage("group.welcome.message", groupName),
-                keyboardService.buildGroupWelcomeKeyboard());
+            case BACK_GROUP_SETTINGS -> {
+                final String groupName = groupUserService.getGroupUserByChatId(chatId)
+                    .getGroup()
+                    .getName();
+                telegramService.updateMessage(chatId, messageId,
+                    i18n.getMessage("group.welcome.message", groupName),
+                    keyboardService.buildGroupWelcomeKeyboard());
+            }
             case BACK_CHANGE_GROUP_NAME -> telegramService.updateMessage(chatId, messageId,
                 i18n.getMessage("group.settings.message"),
                 keyboardService.buildGroupSettingsKeyboard());
