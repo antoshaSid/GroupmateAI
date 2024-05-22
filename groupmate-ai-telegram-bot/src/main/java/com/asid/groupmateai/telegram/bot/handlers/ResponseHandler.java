@@ -58,10 +58,10 @@ public class ResponseHandler implements UpdateHandler {
                 telegramService.sendMessage(chatId, response);
             } catch (final ResponseGenerationException e) {
                 log.error(e.getMessage(), e);
-                telegramService.sendMessage(chatId, i18n.getMessage("user.input.generate.response.error"));
+                telegramService.sendMessage(chatId, i18n.getMessage("user.input.generate.response.error.message"));
             }
         } else {
-            telegramService.sendMessage(chatId, i18n.getMessage("user.input.join.group.first.error"));
+            telegramService.sendMessage(chatId, i18n.getMessage("user.input.join.group.first.error.message"));
         }
     }
 }

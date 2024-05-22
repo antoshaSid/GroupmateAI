@@ -70,7 +70,7 @@ public class StartCommandHandler implements CommandHandler, UpdateHandler {
         if (user.getUserState() != UserState.IDLE) {
 
             // START command is invoked by a user with WAIT_FOR_INPUT state
-            telegramService.sendMessage(chatId, i18n.getMessage("user.input.reserved.command.error", command()));
+            telegramService.sendMessage(chatId, i18n.getMessage("user.input.reserved.command.error.message", command()));
         } else if (groupUser != null) {
 
             // START command is invoked by a user in a group

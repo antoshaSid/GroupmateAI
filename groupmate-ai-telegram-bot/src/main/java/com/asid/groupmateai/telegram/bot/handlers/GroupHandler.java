@@ -92,7 +92,7 @@ public class GroupHandler implements UpdateHandler {
 
         userService.updateUserState(chatId, UserState.WAIT_FOR_GROUP_NAME, metadata);
         telegramService.updateMessage(chatId, messageId,
-            i18n.getMessage("user.input.group.name"),
+            i18n.getMessage("user.input.enter.group.name.message"),
             keyboardService.buildBackKeyboard(BackCallback.BACK_CREATE_GROUP.getData()));
     }
 
@@ -103,7 +103,7 @@ public class GroupHandler implements UpdateHandler {
 
         userService.updateUserState(chatId, UserState.WAIT_FOR_GROUP_TOKEN, metadata);
         telegramService.updateMessage(chatId, messageId,
-            i18n.getMessage("user.input.group.token"),
+            i18n.getMessage("user.input.enter.group.token.message"),
             keyboardService.buildBackKeyboard(BackCallback.BACK_JOIN_GROUP.getData()));
     }
 
@@ -172,7 +172,7 @@ public class GroupHandler implements UpdateHandler {
         try {
             parsedGroupToken = Long.valueOf(groupToken);
         } catch (final NumberFormatException e) {
-            telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.incorrect.format.error"));
+            telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.incorrect.format.error.message"));
             return;
         }
 
@@ -185,7 +185,8 @@ public class GroupHandler implements UpdateHandler {
                 i18n.getMessage("group.welcome.message", groupUser.getGroup().getName()),
                 keyboardService.buildGroupWelcomeKeyboard());
         } else {
-            telegramService.sendMessage(chatId, i18n.getMessage("user.input.group.token.group.does.not.exist.error"));
+            telegramService.sendMessage(chatId, i18n.getMessage(
+                "user.input.group.token.group.does.not.exist.error.message"));
         }
     }
 
@@ -196,7 +197,7 @@ public class GroupHandler implements UpdateHandler {
 
         userService.updateUserState(chatId, UserState.WAIT_FOR_NEW_GROUP_NAME, metadata);
         telegramService.updateMessage(chatId, messageId,
-            i18n.getMessage("user.input.new.group.name"),
+            i18n.getMessage("user.input.enter.new.group.name.message"),
             keyboardService.buildBackKeyboard(BackCallback.BACK_CHANGE_GROUP_NAME.getData()));
     }
 
