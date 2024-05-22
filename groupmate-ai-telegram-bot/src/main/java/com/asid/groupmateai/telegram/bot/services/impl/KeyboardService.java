@@ -59,10 +59,10 @@ public class KeyboardService {
             .build();
     }
 
-    public InlineKeyboardMarkup buildBackKeyboard() {
+    public InlineKeyboardMarkup buildBackKeyboard(final String callbackData) {
         final InlineKeyboardButton backButton = InlineKeyboardButton.builder()
             .text(i18n.getMessage("keyboard.button.back"))
-            .callbackData(BackCallback.BACK.getData())
+            .callbackData(callbackData)
             .build();
 
         return InlineKeyboardMarkup.builder()

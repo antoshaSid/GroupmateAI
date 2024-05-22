@@ -48,7 +48,9 @@ public class GroupHandler implements UpdateHandler {
 
     @Override
     public boolean canHandleUpdate(final Update update) {
-        return GroupCallback.isGroupCallback(update) || isUserStateGroupRelated(update);
+        return GroupCallback.isGroupCallback(update) ||
+            isUserStateGroupRelated(update) ||
+            BackCallback.isBackCallback(update);
     }
 
     @Override
@@ -88,7 +90,7 @@ public class GroupHandler implements UpdateHandler {
         userService.updateUserState(chatId, UserState.WAIT_FOR_GROUP_NAME, metadata);
         telegramService.updateMessage(chatId, messageId,
             i18n.getMessage("user.input.group.name"),
-            keyboardService.buildBackKeyboard());
+            keyboardService.buildBackKeyboard(BackCallback.BACK_CREATE_GROUP.getData()));
     }
 
     private void handleJoinGroupCallback(final Update update) {
@@ -99,7 +101,7 @@ public class GroupHandler implements UpdateHandler {
         userService.updateUserState(chatId, UserState.WAIT_FOR_GROUP_TOKEN, metadata);
         telegramService.updateMessage(chatId, messageId,
             i18n.getMessage("user.input.group.token"),
-            keyboardService.buildBackKeyboard());
+            keyboardService.buildBackKeyboard(BackCallback.BACK_JOIN_GROUP.getData()));
     }
 
     private void handleQueryListCallback(final Update update) {
@@ -113,11 +115,23 @@ public class GroupHandler implements UpdateHandler {
     private void handleBackCallback(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
         final Integer messageId = telegramService.getMessageIdFromUpdate(update);
+        final String groupName = groupUserService.getGroupUserByChatId(chatId)
+            .getGroup()
+            .getName();
 
         userService.updateUserState(chatId, UserState.IDLE);
-        telegramService.updateMessage(chatId, messageId,
-            i18n.getMessage("welcome.message"),
-            keyboardService.buildWelcomeKeyboard());
+
+        switch (BackCallback.getInstance(update)) {
+            case BACK_CREATE_GROUP, BACK_JOIN_GROUP -> telegramService.updateMessage(chatId, messageId,
+                i18n.getMessage("welcome.message"),
+                keyboardService.buildWelcomeKeyboard());
+            case BACK_GROUP_SETTINGS -> telegramService.updateMessage(chatId, messageId,
+                i18n.getMessage("group.welcome.message", groupName),
+                keyboardService.buildGroupWelcomeKeyboard());
+            case BACK_CHANGE_GROUP_NAME -> telegramService.updateMessage(chatId, messageId,
+                i18n.getMessage("group.settings.message"),
+                keyboardService.buildGroupSettingsKeyboard());
+        }
     }
 
     private void handleGroupCreation(final Update update) {
