@@ -1,6 +1,14 @@
 package com.asid.groupmateai.telegram.bot.handlers;
 
+import com.asid.groupmateai.core.exceptions.ResponseGenerationException;
+import com.asid.groupmateai.core.services.GroupUserService;
+import com.asid.groupmateai.core.services.UserService;
+import com.asid.groupmateai.core.services.UserThreadService;
+import com.asid.groupmateai.storage.entities.GroupUserEntity;
+import com.asid.groupmateai.storage.entities.UserState;
+import com.asid.groupmateai.telegram.bot.services.I18n;
 import com.asid.groupmateai.telegram.bot.services.TelegramService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -8,80 +16,52 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
 @Order(5)
+@Slf4j
 public class ResponseHandler implements UpdateHandler {
 
     private final TelegramService telegramService;
+    private final UserService userService;
+    private final GroupUserService groupUserService;
+    private final UserThreadService userThreadService;
+    private final I18n i18n;
 
     @Autowired
-    public ResponseHandler(final TelegramService telegramService) {
+    public ResponseHandler(final TelegramService telegramService,
+                           final UserService userService,
+                           final GroupUserService groupUserService,
+                           final UserThreadService userThreadService,
+                           final I18n i18n) {
         this.telegramService = telegramService;
+        this.userService = userService;
+        this.groupUserService = groupUserService;
+        this.userThreadService = userThreadService;
+        this.i18n = i18n;
     }
 
     @Override
-    public boolean canHandleUpdate(Update update) {
-        return false;
-//        return telegramService.getMessageFromUpdate(update).isPresent();
+    public boolean canHandleUpdate(final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+        return userService.getUserState(chatId) == UserState.IDLE && telegramService.hasMessageText(update);
     }
 
     @Override
     public void handleUpdate(final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+        final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
 
+        if (groupUser != null) {
+            final String messageText = telegramService.getMessageTextFromUpdate(update);
+            final String threadId = groupUser.getThreadId();
+
+            try {
+                final String response = userThreadService.generateResponse(threadId, messageText);
+                telegramService.sendMessage(chatId, response);
+            } catch (final ResponseGenerationException e) {
+                log.error(e.getMessage(), e);
+                telegramService.sendMessage(chatId, i18n.getMessage("user.input.generate.response.error"));
+            }
+        } else {
+            telegramService.sendMessage(chatId, i18n.getMessage("user.input.join.group.first.error"));
+        }
     }
-
-
-
-
-
-
-
-
-
-
-
-//    @Override
-//    public void handleUpdate(Update update) {
-//        final Long chatId = telegramService.getChatIdFromUpdate(update);
-//        final String message = telegramService.getMessageFromUpdate(update).get();
-//
-//        final ThreadMessageRequest threadMessageRequest = ThreadMessageRequest.builder()
-//            .role(ThreadMessageRole.USER)
-//            .content(message)
-//            .build();
-//        final ThreadMessage threadMessage = threadOpenAiClient.createThreadMessage(thread.getId(), threadMessageRequest).join();
-//
-//        final ThreadRunRequest runRequest = ThreadRunRequest.builder()
-//            .assistantId(assistantId)
-//            .build();
-//
-//        final Stream<Event> runStream = threadOpenAiClient.createThreadRun(thread.getId(), runRequest).join();
-//
-//        telegramService.sendMessage(chatId, handleRunEvents(runStream));
-//    }
-//
-//    private String handleRunEvents(Stream<Event> runStream) {
-//        final StringBuilder stringBuilder = new StringBuilder();
-//        runStream.forEach(event -> {
-//                if (event.getName()
-//                    .equals(EventName.THREAD_MESSAGE_DELTA)) {
-//                    final ThreadMessageDelta msgDelta = (ThreadMessageDelta) event.getData();
-//                    final ThreadMessageContent content = msgDelta.getDelta()
-//                        .getContent()
-//                        .get(0);
-//                    if (content instanceof ThreadMessageContent.TextContent textContent) {
-//                        stringBuilder.append(textContent.getText()
-//                            .getValue());
-//                    }
-//                } else if (event.getName()
-//                    .equals(EventName.THREAD_RUN_FAILED)) {
-//                    final ThreadRun runFailed = (ThreadRun) event.getData();
-//                    final LastError error = runFailed.getLastError();
-//
-//                    System.out.println("Thread run failed. See stack trace for more details. " + error.getMessage());
-//                }
-//            });
-//
-//        final String generatedResponse = stringBuilder.toString();
-//        System.out.println("Thread was completed with response: " + generatedResponse);
-//        return generatedResponse;
-//    }
 }
