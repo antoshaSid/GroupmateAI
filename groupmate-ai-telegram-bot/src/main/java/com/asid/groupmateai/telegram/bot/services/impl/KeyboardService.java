@@ -128,4 +128,24 @@ public class KeyboardService {
     public ReplyKeyboardRemove removeQueryKeyboard() {
         return new ReplyKeyboardRemove(true);
     }
+
+    public InlineKeyboardMarkup buildManageGroupFilesKeyboard() {
+        final InlineKeyboardButton openDiskButton = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.open.group.files.disk"))
+            .url("https://example.com/") // TODO: implement Disk management
+            .build();
+        final InlineKeyboardButton backButton = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.back"))
+            .callbackData(BackCallback.BACK_MANAGE_GROUP_FILES.getData())
+            .build();
+        final InlineKeyboardButton updateContextButton = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.update.group.context"))
+            .callbackData(GroupCallback.UPDATE_CONTEXT.getData())
+            .build();
+
+        return InlineKeyboardMarkup.builder()
+            .keyboardRow(new InlineKeyboardRow(openDiskButton))
+            .keyboardRow(new InlineKeyboardRow(backButton, updateContextButton))
+            .build();
+    }
 }

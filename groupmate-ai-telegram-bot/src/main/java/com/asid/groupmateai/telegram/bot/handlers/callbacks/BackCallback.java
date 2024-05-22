@@ -9,7 +9,8 @@ public enum BackCallback {
     BACK_CREATE_GROUP("back_create_group_callback"),
     BACK_JOIN_GROUP("back_join_group_callback"),
     BACK_GROUP_SETTINGS("back_group_settings_callback"),
-    BACK_CHANGE_GROUP_NAME("back_change_group_name_callback");
+    BACK_CHANGE_GROUP_NAME("back_change_group_name_callback"),
+    BACK_MANAGE_GROUP_FILES("back_manage_group_files_callback");
 
     BackCallback(final String data) {
         this.data = data;

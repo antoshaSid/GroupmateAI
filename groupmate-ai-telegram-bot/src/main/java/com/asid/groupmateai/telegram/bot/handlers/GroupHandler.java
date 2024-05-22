@@ -63,6 +63,7 @@ public class GroupHandler implements UpdateHandler {
                 case QUERY_LIST_ON, QUERY_LIST_OFF -> this.handleQueryListCallback(update);
                 case GROUP_SETTINGS -> this.handleGroupSettingsCallback(update);
                 case CHANGE_GROUP_NAME -> this.handleGroupChangeNameCallback(update);
+                case MANAGE_GROUP_FILES -> this.handleManageGroupFilesCallback(update);
             }
         } else if (BackCallback.isBackCallback(update)) {
             this.handleBackCallback(update);
@@ -167,7 +168,7 @@ public class GroupHandler implements UpdateHandler {
                     i18n.getMessage("group.welcome.message", groupName),
                     keyboardService.buildGroupWelcomeKeyboard(useQueryKeyboard));
             }
-            case BACK_CHANGE_GROUP_NAME -> telegramService.updateMessage(chatId, messageId,
+            case BACK_CHANGE_GROUP_NAME, BACK_MANAGE_GROUP_FILES -> telegramService.updateMessage(chatId, messageId,
                 i18n.getMessage("group.settings.message"),
                 keyboardService.buildGroupSettingsKeyboard());
         }
@@ -249,5 +250,14 @@ public class GroupHandler implements UpdateHandler {
         telegramService.sendMessage(chatId,
             i18n.getMessage("group.settings.message"),
             keyboardService.buildGroupSettingsKeyboard());
+    }
+
+    private void handleManageGroupFilesCallback(final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+        final Integer messageId = telegramService.getMessageIdFromUpdate(update);
+
+        telegramService.updateMessage(chatId, messageId,
+            i18n.getMessage("manage.group.files.message"),
+            keyboardService.buildManageGroupFilesKeyboard());
     }
 }

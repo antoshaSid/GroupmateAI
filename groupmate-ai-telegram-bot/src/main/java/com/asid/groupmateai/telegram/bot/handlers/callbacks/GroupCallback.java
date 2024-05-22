@@ -14,7 +14,8 @@ public enum GroupCallback {
     CHANGE_GROUP_NAME("change_group_name_callback"),
     MANAGE_GROUP_FILES("manage_group_files_callback"),
     INVITE_PEOPLE("invite_people_callback"),
-    LEAVE_GROUP("leave_group_callback");
+    LEAVE_GROUP("leave_group_callback"),
+    UPDATE_CONTEXT("update_context_callback");
 
     GroupCallback(final String data) {
         this.data = data;
