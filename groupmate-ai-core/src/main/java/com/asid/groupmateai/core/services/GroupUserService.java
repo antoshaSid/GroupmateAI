@@ -12,7 +12,7 @@ public interface GroupUserService {
 
     boolean groupUserExistsByChatId(Long userChatId);
 
-    GroupUserEntity updateGroupUser(GroupUserEntity groupUserEntity);
+    void updateGroupUser(GroupUserEntity groupUserEntity);
 
     void removeGroupUserByChatId(Long userChatId);
 }

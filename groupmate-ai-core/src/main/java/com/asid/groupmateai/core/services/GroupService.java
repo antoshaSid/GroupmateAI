@@ -10,7 +10,7 @@ public interface GroupService {
 
     boolean groupExists(Long groupId);
 
-    GroupEntity updateGroup(GroupEntity groupEntity);
+    void updateGroup(GroupEntity groupEntity);
 
     void removeGroup(Long groupId);
 }

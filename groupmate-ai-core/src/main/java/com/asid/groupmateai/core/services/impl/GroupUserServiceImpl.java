@@ -114,8 +114,8 @@ public class GroupUserServiceImpl implements GroupUserService {
     }
 
     @Override
-    public GroupUserEntity updateGroupUser(final GroupUserEntity groupUserEntity) {
-        return groupUserRepository.save(groupUserEntity);
+    public void updateGroupUser(final GroupUserEntity groupUserEntity) {
+        groupUserRepository.save(groupUserEntity);
     }
 
     @Override
