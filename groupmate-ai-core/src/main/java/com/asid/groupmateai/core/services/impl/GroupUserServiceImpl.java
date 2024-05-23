@@ -119,7 +119,25 @@ public class GroupUserServiceImpl implements GroupUserService {
     }
 
     @Override
-    public void removeGroupUserByChatId(final Long userChatId) {
-        groupUserRepository.deleteById(userChatId);
+    public boolean removeUserFromGroup(final Long userChatId, final boolean deleteGroup) {
+        final GroupUserEntity groupUser = getGroupUserByChatId(userChatId);
+
+        if (groupUser != null) {
+            if (deleteGroup) {
+                final Long groupId = groupUser.getGroup().getId();
+
+                groupUserRepository.findByGroupId(groupId).stream()
+                    .map(GroupUserEntity::getThreadId)
+                    .forEach(threadClient::deleteThread);
+                groupService.removeGroup(groupId);
+            } else {
+                threadClient.deleteThread(groupUser.getThreadId());
+                groupUserRepository.deleteById(userChatId);
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
