@@ -2,6 +2,7 @@ package com.asid.groupmateai.telegram.bot.services.impl;
 
 import com.asid.groupmateai.telegram.bot.handlers.callbacks.BackCallback;
 import com.asid.groupmateai.telegram.bot.handlers.callbacks.GroupCallback;
+import com.asid.groupmateai.telegram.bot.handlers.callbacks.HelpCallback;
 import com.asid.groupmateai.telegram.bot.services.I18n;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -32,7 +33,7 @@ public class KeyboardService {
             .build();
         final InlineKeyboardButton helpButton = InlineKeyboardButton.builder()
             .text(i18n.getMessage("keyboard.button.help"))
-            .callbackData("help_callback")
+            .callbackData(HelpCallback.HELP.getData())
             .build();
 
         return InlineKeyboardMarkup.builder()
@@ -53,7 +54,7 @@ public class KeyboardService {
             .build();
         final InlineKeyboardButton helpButton = InlineKeyboardButton.builder()
             .text(i18n.getMessage("keyboard.button.help"))
-            .callbackData("help_callback")
+            .callbackData(HelpCallback.HELP.getData())
             .build();
 
         return InlineKeyboardMarkup.builder()
