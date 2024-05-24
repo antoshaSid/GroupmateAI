@@ -1,9 +1,8 @@
 package com.asid.groupmateai.telegram.bot.services.impl;
 
 import com.asid.groupmateai.telegram.bot.services.I18n;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;
@@ -13,10 +12,9 @@ public class I18nImpl implements I18n {
 
     private final MessageSource messageSource;
 
-    @Autowired
     public I18nImpl() {
-        final ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasename("responses/messages");
+        final ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename("i18n/messages");
         messageSource.setDefaultEncoding("UTF-8");
         this.messageSource = messageSource;
     }
