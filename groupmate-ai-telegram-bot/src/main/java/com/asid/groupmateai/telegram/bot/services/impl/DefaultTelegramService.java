@@ -1,6 +1,7 @@
 package com.asid.groupmateai.telegram.bot.services.impl;
 
 import com.asid.groupmateai.telegram.bot.services.TelegramService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -15,6 +16,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @Service
+@Slf4j
 public class DefaultTelegramService implements TelegramService {
 
     private final TelegramClient telegramClient;
@@ -92,13 +94,12 @@ public class DefaultTelegramService implements TelegramService {
             final SendMessage message = SendMessage.builder()
                 .chatId(chatId)
                 .text(text)
-                .parseMode(ParseMode.HTML)
+                .parseMode(ParseMode.MARKDOWN)
                 .build();
 
             telegramClient.execute(message);
         } catch (final TelegramApiException exception) {
-            exception.printStackTrace();
-            // TODO LOG: exception and send to user
+            this.log(chatId, exception);
         }
     }
 
@@ -110,14 +111,13 @@ public class DefaultTelegramService implements TelegramService {
             final SendMessage message = SendMessage.builder()
                 .chatId(chatId)
                 .text(text)
-                .parseMode(ParseMode.HTML)
+                .parseMode(ParseMode.MARKDOWN)
                 .replyMarkup(keyboard)
                 .build();
 
             telegramClient.execute(message);
         } catch (final TelegramApiException exception) {
-            exception.printStackTrace();
-            // TODO LOG: exception and send to user
+            this.log(chatId, exception);
         }
     }
 
@@ -130,13 +130,12 @@ public class DefaultTelegramService implements TelegramService {
                 .chatId(chatId)
                 .messageId(messageId)
                 .text(text)
-                .parseMode(ParseMode.HTML)
+                .parseMode(ParseMode.MARKDOWN)
                 .build();
 
             telegramClient.execute(newTextMessage);
         } catch (final TelegramApiException exception) {
-            exception.printStackTrace();
-            // TODO LOG: exception and send to user
+            this.log(chatId, exception);
         }
     }
 
@@ -151,13 +150,12 @@ public class DefaultTelegramService implements TelegramService {
                 .messageId(messageId)
                 .text(text)
                 .replyMarkup(keyboard)
-                .parseMode(ParseMode.HTML)
+                .parseMode(ParseMode.MARKDOWN)
                 .build();
 
             telegramClient.execute(newTextMessage);
         } catch (final TelegramApiException exception) {
-            exception.printStackTrace();
-            // TODO LOG: exception and send to user
+            this.log(chatId, exception);
         }
     }
 
@@ -174,8 +172,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(newInlineKeyboard);
         } catch (final TelegramApiException exception) {
-            exception.printStackTrace();
-            // TODO LOG: exception and send to user
+            this.log(chatId, exception);
         }
     }
 
@@ -189,8 +186,12 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(deleteMessage);
         } catch (final TelegramApiException exception) {
-            exception.printStackTrace();
-            // TODO LOG: exception and send to user
+            this.log(chatId, exception);
         }
+    }
+
+    private void log(final Long chatId, final TelegramApiException exception) {
+        log.error("Telegram error occurred in chat ({}): {}", chatId, exception.getMessage());
+        exception.printStackTrace();
     }
 }
