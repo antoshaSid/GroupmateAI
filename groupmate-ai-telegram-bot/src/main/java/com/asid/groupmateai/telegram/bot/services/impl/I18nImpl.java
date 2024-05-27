@@ -20,7 +20,7 @@ public class I18nImpl implements I18n {
     }
 
     @Override
-    public String getMessage(final String code, final String... args) {
+    public String getMessage(final String code, final Object... args) {
         return messageSource.getMessage(code, args, Locale.getDefault());
     }
 }

@@ -72,7 +72,7 @@ public class GroupHandler implements UpdateHandler {
             switch (userService.getUserState(chatId)) {
                 case WAIT_FOR_GROUP_NAME -> this.handleGroupCreation(update);
                 case WAIT_FOR_GROUP_TOKEN -> this.handleGroupJoin(update);
-                case WAIT_FOR_NEW_GROUP_NAME -> this.handleGroupChangeName(update);
+                case WAIT_FOR_NEW_GROUP_NAME -> this.handleGroupNameChange(update);
             }
         }
     }
@@ -144,15 +144,19 @@ public class GroupHandler implements UpdateHandler {
     private void handleGroupSettingsCallback(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
         final Integer messageId = telegramService.getMessageIdFromUpdate(update);
+        final GroupEntity group = groupUserService.getGroupUserByChatId(chatId).getGroup();
+        final int groupUsersCount = groupUserService.countGroupUsersByGroupId(group.getId());
 
         telegramService.updateMessage(chatId, messageId,
-            i18n.getMessage("group.settings.message"),
+            i18n.getMessage("group.settings.message", group.getName(), group.getId(), groupUsersCount),
             keyboardService.buildGroupSettingsKeyboard());
     }
 
     private void handleBackCallback(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
         final Integer messageId = telegramService.getMessageIdFromUpdate(update);
+        final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+        final GroupEntity group = groupUser.getGroup();
 
         userService.updateUserState(chatId, UserState.IDLE);
 
@@ -161,16 +165,17 @@ public class GroupHandler implements UpdateHandler {
                 i18n.getMessage("welcome.message", telegramService.getFirstNameFromUpdate(update)),
                 keyboardService.buildWelcomeKeyboard());
             case BACK_GROUP_SETTINGS -> {
-                final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
-                final String groupName = groupUser.getGroup().getName();
                 final boolean useQueryKeyboard = Boolean.parseBoolean(groupUser.getMetadata().get("useQueryKeyboard"));
                 telegramService.updateMessage(chatId, messageId,
-                    i18n.getMessage("group.welcome.message", groupName),
+                    i18n.getMessage("group.welcome.message", group.getName()),
                     keyboardService.buildGroupWelcomeKeyboard(useQueryKeyboard));
             }
-            case BACK_CHANGE_GROUP_NAME, BACK_MANAGE_GROUP_FILES -> telegramService.updateMessage(chatId, messageId,
-                i18n.getMessage("group.settings.message"),
-                keyboardService.buildGroupSettingsKeyboard());
+            case BACK_CHANGE_GROUP_NAME, BACK_MANAGE_GROUP_FILES -> {
+                final int groupUsersCount = groupUserService.countGroupUsersByGroupId(group.getId());
+                telegramService.updateMessage(chatId, messageId,
+                    i18n.getMessage("group.settings.message", group.getName(), group.getId(), groupUsersCount),
+                    keyboardService.buildGroupSettingsKeyboard());
+            }
         }
     }
 
@@ -233,9 +238,10 @@ public class GroupHandler implements UpdateHandler {
             keyboardService.buildBackKeyboard(BackCallback.BACK_CHANGE_GROUP_NAME.getData()));
     }
 
-    private void handleGroupChangeName(final Update update) {
+    private void handleGroupNameChange(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
         final GroupEntity group = groupUserService.getGroupUserByChatId(chatId).getGroup();
+        final int groupUsersCount = groupUserService.countGroupUsersByGroupId(group.getId());
         final String newGroupName = telegramService.getMessageTextFromUpdate(update);
         final String messageId = userService.getUser(chatId)
             .getMetadata()
@@ -248,7 +254,7 @@ public class GroupHandler implements UpdateHandler {
         telegramService.deleteMessage(chatId, Integer.valueOf(messageId));
         telegramService.sendMessage(chatId, i18n.getMessage("group.name.changed.successfully.message", newGroupName));
         telegramService.sendMessage(chatId,
-            i18n.getMessage("group.settings.message"),
+            i18n.getMessage("group.settings.message", newGroupName, group.getId(), groupUsersCount),
             keyboardService.buildGroupSettingsKeyboard());
     }
 
