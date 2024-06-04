@@ -119,6 +119,11 @@ public class GroupUserServiceImpl implements GroupUserService {
     }
 
     @Override
+    public int countGroupUsersByGroupId(final Long groupId) {
+        return groupUserRepository.findByGroupId(groupId).size();
+    }
+
+    @Override
     public boolean removeUserFromGroup(final Long userChatId, final boolean deleteGroup) {
         final GroupUserEntity groupUser = getGroupUserByChatId(userChatId);
 

@@ -14,5 +14,7 @@ public interface GroupUserService {
 
     void updateGroupUser(GroupUserEntity groupUserEntity);
 
+    int countGroupUsersByGroupId(Long groupId);
+
     boolean removeUserFromGroup(Long userChatId, boolean deleteGroup);
 }
