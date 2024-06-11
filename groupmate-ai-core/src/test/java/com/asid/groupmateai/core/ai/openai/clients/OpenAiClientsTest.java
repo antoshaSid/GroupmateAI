@@ -110,7 +110,7 @@ public class OpenAiClientsTest {
     }
 
     private String createVectorStoreWithFile(final String fileId) {
-        final VectorStore vectorStore = vectorStoreOpenAiClient.createVectorStore()
+        final VectorStore vectorStore = vectorStoreOpenAiClient.createVectorStore("Test Vector Store")
             .join();
 
         assertNotNull(vectorStore.getId());

@@ -25,6 +25,9 @@ public class GroupEntity {
     @Column(name = "vector_store_id", unique = true, nullable = false)
     private String vectorStoreId;
 
+    @Column(name = "drive_folder_id", unique = true, nullable = false)
+    private String driveFolderId;
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.REMOVE)
     private Collection<GroupUserEntity> groupUsers;
 }

@@ -2,10 +2,7 @@ package com.asid.groupmateai.core.ai.openai.clients;
 
 import io.github.sashirestela.openai.SimpleOpenAI;
 import io.github.sashirestela.openai.common.DeletedObject;
-import io.github.sashirestela.openai.domain.assistant.FileStatus;
-import io.github.sashirestela.openai.domain.assistant.VectorStore;
-import io.github.sashirestela.openai.domain.assistant.VectorStoreFile;
-import io.github.sashirestela.openai.domain.assistant.VectorStoreFileBatch;
+import io.github.sashirestela.openai.domain.assistant.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,9 +44,9 @@ public class VectorStoreOpenAiClient extends OpenAiClient {
         super(openAiClient);
     }
 
-    public CompletableFuture<VectorStore> createVectorStore() {
+    public CompletableFuture<VectorStore> createVectorStore(final String name) {
         return this.openAiClient.vectorStores()
-            .create()
+            .create(VectorStoreRequest.builder().name(name).build())
             .thenApply(vs -> {
                 log.debug("Vector store was created: {}", vs.getId());
                 return vs;
@@ -108,7 +105,6 @@ public class VectorStoreOpenAiClient extends OpenAiClient {
                 return deleted;
             });
     }
-
 
     public CompletableFuture<VectorStoreFileBatch> createVectorStoreFileBatch(final String vectorStoreId,
                                                                               final List<String> fileIds) {

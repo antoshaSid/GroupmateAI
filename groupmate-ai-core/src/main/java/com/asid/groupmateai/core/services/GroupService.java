@@ -2,9 +2,11 @@ package com.asid.groupmateai.core.services;
 
 import com.asid.groupmateai.storage.entities.GroupEntity;
 
+import java.io.IOException;
+
 public interface GroupService {
 
-    GroupEntity addGroup(String name);
+    GroupEntity addGroup(String name) throws IOException;
 
     GroupEntity getGroup(Long groupId);
 

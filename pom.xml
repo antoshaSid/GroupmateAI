@@ -9,7 +9,6 @@
     <packaging>pom</packaging>
 
     <name>GroupmateAI Parent</name>
-    <description>GroupmateAI Parent</description>
 
     <modules>
         <module>groupmate-ai-telegram-bot</module>
@@ -21,6 +20,8 @@
         <java.version>17</java.version>
         <openai.client.version>3.1.0</openai.client.version>
         <telegram.api.version>7.2.1</telegram.api.version>
+        <google.api.drive.version>v3-rev20240521-2.0.0</google.api.drive.version>
+        <google.api.client.version>2.6.0</google.api.client.version>
     </properties>
 
     <dependencyManagement>

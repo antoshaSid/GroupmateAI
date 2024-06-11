@@ -2,6 +2,7 @@ package com.asid.groupmateai.core.services.impl;
 
 import com.asid.groupmateai.core.ai.openai.clients.ThreadOpenAiClient;
 import com.asid.groupmateai.core.ai.openai.clients.VectorStoreOpenAiClient;
+import com.asid.groupmateai.core.services.GoogleDriveService;
 import com.asid.groupmateai.core.services.GroupService;
 import com.asid.groupmateai.core.services.GroupUserService;
 import com.asid.groupmateai.core.services.UserService;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.Collections;
 
 @Service
@@ -25,28 +27,33 @@ public class GroupUserServiceImpl implements GroupUserService {
     private final UserService userService;
     private final ThreadOpenAiClient threadClient;
     private final VectorStoreOpenAiClient vectorStoreClient;
+    private final GoogleDriveService googleDriveService;
 
     @Autowired
     public GroupUserServiceImpl(final GroupUserRepository groupUserRepository,
                                 final GroupService groupService,
                                 final UserService userService,
                                 final ThreadOpenAiClient threadClient,
-                                final VectorStoreOpenAiClient vectorStoreClient) {
+                                final VectorStoreOpenAiClient vectorStoreClient,
+                                final GoogleDriveService googleDriveService) {
         this.groupUserRepository = groupUserRepository;
         this.groupService = groupService;
         this.userService = userService;
         this.threadClient = threadClient;
         this.vectorStoreClient = vectorStoreClient;
+        this.googleDriveService = googleDriveService;
     }
 
     @Override
-    public GroupUserEntity addGroupWithUser(final String groupName, final Long userChatId) {
+    public GroupUserEntity addGroupWithUser(final String groupName, final Long userChatId) throws IOException {
         String threadId = null;
         String vectorStoreId = null;
+        String folderId = null;
         try {
             final UserEntity user = userService.getUser(userChatId);
             final GroupEntity group = groupService.addGroup(groupName);
 
+            folderId = group.getDriveFolderId();
             vectorStoreId = group.getVectorStoreId();
             threadId = threadClient.createThreadWithVectorStore(vectorStoreId)
                 .join()
@@ -62,11 +69,14 @@ public class GroupUserServiceImpl implements GroupUserService {
 
             return groupUserRepository.save(groupUserEntity);
         } catch (final Exception e) {
-            if (threadId != null) {
-                threadClient.deleteThread(threadId);
+            if (folderId != null) {
+                googleDriveService.deleteFolder(folderId);
             }
             if (vectorStoreId != null) {
                 vectorStoreClient.deleteVectorStore(vectorStoreId);
+            }
+            if (threadId != null) {
+                threadClient.deleteThread(threadId);
             }
 
             throw e;

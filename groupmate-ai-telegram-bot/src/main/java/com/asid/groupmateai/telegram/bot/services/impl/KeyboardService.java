@@ -130,10 +130,10 @@ public class KeyboardService {
         return new ReplyKeyboardRemove(true);
     }
 
-    public InlineKeyboardMarkup buildManageGroupFilesKeyboard() {
-        final InlineKeyboardButton openDiskButton = InlineKeyboardButton.builder()
-            .text(i18n.getMessage("keyboard.button.open.group.files.disk"))
-            .url("https://example.com/") // TODO: implement Disk management
+    public InlineKeyboardMarkup buildManageGroupFilesKeyboard(final String folderLink) {
+        final InlineKeyboardButton openDriveButton = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.open.group.files.drive"))
+            .url(folderLink)
             .build();
         final InlineKeyboardButton backButton = InlineKeyboardButton.builder()
             .text(i18n.getMessage("keyboard.button.back"))
@@ -141,11 +141,11 @@ public class KeyboardService {
             .build();
         final InlineKeyboardButton updateContextButton = InlineKeyboardButton.builder()
             .text(i18n.getMessage("keyboard.button.update.group.context"))
-            .callbackData(GroupCallback.UPDATE_CONTEXT.getData())
+            .callbackData(GroupCallback.UPDATE_CONTEXT.getData()) // TODO: implement update context
             .build();
 
         return InlineKeyboardMarkup.builder()
-            .keyboardRow(new InlineKeyboardRow(openDiskButton))
+            .keyboardRow(new InlineKeyboardRow(openDriveButton))
             .keyboardRow(new InlineKeyboardRow(backButton, updateContextButton))
             .build();
     }

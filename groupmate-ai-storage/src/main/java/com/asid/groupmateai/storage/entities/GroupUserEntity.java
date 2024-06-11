@@ -33,7 +33,7 @@ public class GroupUserEntity {
     @Column(name = "thread_id", unique = true, nullable = false)
     private String threadId;
 
-    @Column(name = "user_role")
+    @Column(name = "user_role", nullable = false)
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
 

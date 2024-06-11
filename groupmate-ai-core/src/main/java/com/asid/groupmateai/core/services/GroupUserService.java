@@ -2,9 +2,11 @@ package com.asid.groupmateai.core.services;
 
 import com.asid.groupmateai.storage.entities.GroupUserEntity;
 
+import java.io.IOException;
+
 public interface GroupUserService {
 
-    GroupUserEntity addGroupWithUser(String groupName, Long userChatId);
+    GroupUserEntity addGroupWithUser(String groupName, Long userChatId) throws IOException;
 
     GroupUserEntity addUserToGroup(Long groupId, Long userChatId);
 

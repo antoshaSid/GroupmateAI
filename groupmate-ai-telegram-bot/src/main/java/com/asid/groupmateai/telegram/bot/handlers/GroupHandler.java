@@ -1,5 +1,6 @@
 package com.asid.groupmateai.telegram.bot.handlers;
 
+import com.asid.groupmateai.core.services.GoogleDriveService;
 import com.asid.groupmateai.core.services.GroupService;
 import com.asid.groupmateai.core.services.GroupUserService;
 import com.asid.groupmateai.core.services.UserService;
@@ -17,6 +18,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
@@ -30,6 +32,7 @@ public class GroupHandler implements UpdateHandler {
     private final KeyboardService keyboardService;
     private final GroupUserService groupUserService;
     private final GroupService groupService;
+    private final GoogleDriveService googleDriveService;
     private final I18n i18n;
 
     @Autowired
@@ -38,12 +41,14 @@ public class GroupHandler implements UpdateHandler {
                         final KeyboardService keyboardService,
                         final GroupUserService groupUserService,
                         final GroupService groupService,
+                        final GoogleDriveService googleDriveService,
                         final I18n i18n) {
         this.telegramService = telegramService;
         this.userService = userService;
         this.keyboardService = keyboardService;
         this.groupUserService = groupUserService;
         this.groupService = groupService;
+        this.googleDriveService = googleDriveService;
         this.i18n = i18n;
     }
 
@@ -56,24 +61,28 @@ public class GroupHandler implements UpdateHandler {
 
     @Override
     public void handleUpdate(final Update update) {
-        if (GroupCallback.isGroupCallback(update)) {
-            switch (GroupCallback.getInstance(update)) {
-                case CREATE_GROUP -> this.handleCreateGroupCallback(update);
-                case JOIN_GROUP -> this.handleJoinGroupCallback(update);
-                case QUERY_LIST_ON, QUERY_LIST_OFF -> this.handleQueryListCallback(update);
-                case GROUP_SETTINGS -> this.handleGroupSettingsCallback(update);
-                case CHANGE_GROUP_NAME -> this.handleGroupChangeNameCallback(update);
-                case MANAGE_GROUP_FILES -> this.handleManageGroupFilesCallback(update);
+        try {
+            if (GroupCallback.isGroupCallback(update)) {
+                switch (GroupCallback.getInstance(update)) {
+                    case CREATE_GROUP -> this.handleCreateGroupCallback(update);
+                    case JOIN_GROUP -> this.handleJoinGroupCallback(update);
+                    case QUERY_LIST_ON, QUERY_LIST_OFF -> this.handleQueryListCallback(update);
+                    case GROUP_SETTINGS -> this.handleGroupSettingsCallback(update);
+                    case CHANGE_GROUP_NAME -> this.handleGroupChangeNameCallback(update);
+                    case MANAGE_GROUP_FILES -> this.handleManageGroupFilesCallback(update);
+                }
+            } else if (BackCallback.isBackCallback(update)) {
+                this.handleBackCallback(update);
+            } else if (telegramService.hasMessageText(update)) {
+                final Long chatId = telegramService.getChatIdFromUpdate(update);
+                switch (userService.getUserState(chatId)) {
+                    case WAIT_FOR_GROUP_NAME -> this.handleGroupCreation(update);
+                    case WAIT_FOR_GROUP_TOKEN -> this.handleGroupJoin(update);
+                    case WAIT_FOR_NEW_GROUP_NAME -> this.handleGroupNameChange(update);
+                }
             }
-        } else if (BackCallback.isBackCallback(update)) {
-            this.handleBackCallback(update);
-        } else if (telegramService.hasMessageText(update)) {
-            final Long chatId = telegramService.getChatIdFromUpdate(update);
-            switch (userService.getUserState(chatId)) {
-                case WAIT_FOR_GROUP_NAME -> this.handleGroupCreation(update);
-                case WAIT_FOR_GROUP_TOKEN -> this.handleGroupJoin(update);
-                case WAIT_FOR_NEW_GROUP_NAME -> this.handleGroupNameChange(update);
-            }
+        } catch (final Exception e) {
+            // TODO: handle all possible exception cases in all handlers
         }
     }
 
@@ -179,7 +188,7 @@ public class GroupHandler implements UpdateHandler {
         }
     }
 
-    private void handleGroupCreation(final Update update) {
+    private void handleGroupCreation(final Update update) throws IOException {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
         final String groupName = telegramService.getMessageTextFromUpdate(update);
         final String messageId = userService.getUser(chatId)
@@ -261,9 +270,13 @@ public class GroupHandler implements UpdateHandler {
     private void handleManageGroupFilesCallback(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
         final Integer messageId = telegramService.getMessageIdFromUpdate(update);
+        final String folderId = groupUserService.getGroupUserByChatId(chatId)
+            .getGroup()
+            .getDriveFolderId();
+        final String folderLink = googleDriveService.getFolderShareableLink(folderId);
 
         telegramService.updateMessage(chatId, messageId,
             i18n.getMessage("manage.group.files.message"),
-            keyboardService.buildManageGroupFilesKeyboard());
+            keyboardService.buildManageGroupFilesKeyboard(folderLink));
     }
 }
