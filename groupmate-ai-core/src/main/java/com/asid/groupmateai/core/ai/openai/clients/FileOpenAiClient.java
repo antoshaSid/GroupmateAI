@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -31,7 +32,12 @@ public class FileOpenAiClient extends OpenAiClient {
         super(openAiClient);
     }
 
-    public CompletableFuture<FileResponse> uploadFile(final FileRequest fileRequest) {
+    public CompletableFuture<FileResponse> uploadFile(final Path path) {
+        final FileRequest fileRequest = FileRequest.builder()
+            .file(path)
+            .purpose(FileRequest.PurposeType.ASSISTANTS)
+            .build();
+
         return this.openAiClient.files()
             .create(fileRequest)
             .thenApply(file -> {

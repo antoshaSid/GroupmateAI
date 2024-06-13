@@ -93,12 +93,7 @@ public class OpenAiClientsTest {
         Files.createFile(filePath);
         Files.write(filePath, Collections.singleton("There are 3 subjects on Monday"), StandardOpenOption.APPEND);
 
-        final FileRequest fileRequest = FileRequest.builder()
-            .file(filePath)
-            .purpose(FileRequest.PurposeType.ASSISTANTS)
-            .build();
-
-        final FileResponse file = fileOpenAiClient.uploadFile(fileRequest)
+        final FileResponse file = fileOpenAiClient.uploadFile(filePath)
             .join();
 
         assertNotNull(file.getId());
