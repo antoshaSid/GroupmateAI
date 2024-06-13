@@ -141,7 +141,7 @@ public class KeyboardService {
             .build();
         final InlineKeyboardButton updateContextButton = InlineKeyboardButton.builder()
             .text(i18n.getMessage("keyboard.button.update.group.context"))
-            .callbackData(GroupCallback.UPDATE_CONTEXT.getData()) // TODO: implement update context
+            .callbackData(GroupCallback.UPDATE_CONTEXT.getData())
             .build();
 
         return InlineKeyboardMarkup.builder()

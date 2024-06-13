@@ -70,6 +70,7 @@ public class GroupHandler implements UpdateHandler {
                     case GROUP_SETTINGS -> this.handleGroupSettingsCallback(update);
                     case CHANGE_GROUP_NAME -> this.handleGroupChangeNameCallback(update);
                     case MANAGE_GROUP_FILES -> this.handleManageGroupFilesCallback(update);
+                    case UPDATE_CONTEXT -> this.handleUpdateGroupContextCallback(update);
                 }
             } else if (BackCallback.isBackCallback(update)) {
                 this.handleBackCallback(update);
@@ -82,6 +83,7 @@ public class GroupHandler implements UpdateHandler {
                 }
             }
         } catch (final Exception e) {
+            log.error("Error occurred while handling group-related update", e);
             // TODO: handle all possible exception cases in all handlers
         }
     }
@@ -278,5 +280,19 @@ public class GroupHandler implements UpdateHandler {
         telegramService.updateMessage(chatId, messageId,
             i18n.getMessage("manage.group.files.message"),
             keyboardService.buildManageGroupFilesKeyboard(folderLink));
+    }
+
+    private void handleUpdateGroupContextCallback(final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+        final Long groupId = groupUserService.getGroupUserByChatId(chatId).getGroup().getId();
+
+        groupService.updateGroupContext(groupId)
+            .thenAccept(updated -> {
+                if (updated) {
+                    telegramService.sendMessage(chatId, i18n.getMessage("group.context.updated.successfully.message"));
+                } else {
+                    telegramService.sendMessage(chatId, i18n.getMessage("group.context.update.error.message"));
+                }
+            });
     }
 }
