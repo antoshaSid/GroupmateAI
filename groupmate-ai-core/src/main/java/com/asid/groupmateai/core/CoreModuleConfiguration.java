@@ -54,6 +54,6 @@ public class CoreModuleConfiguration {
 
     private GoogleCredentials authorizeDriveClient(final String serviceAccountKey) throws IOException {
         final InputStream in = new ByteArrayInputStream(serviceAccountKey.getBytes());
-        return ServiceAccountCredentials.fromStream(in).createScoped(DriveScopes.DRIVE_FILE);
+        return ServiceAccountCredentials.fromStream(in).createScoped(DriveScopes.DRIVE);
     }
 }
