@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @Service
@@ -61,10 +62,17 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             .list()
             .setQ("'" + folderId + "' in parents and trashed=false")
             .setSpaces("drive")
-            .setFields("files(id, name)")
-            .setPageSize(15)
+            .setFields("files(id, name, mimeType, modifiedTime)")
+            .setPageSize(15) // TODO: Warn about max file number and allowed mime types
             .execute()
             .getFiles();
+    }
+
+    @Override
+    public InputStream readFile(final String fileId) throws IOException {
+        return driveClient.files()
+            .get(fileId)
+            .executeMediaAsInputStream();
     }
 
     @Override
