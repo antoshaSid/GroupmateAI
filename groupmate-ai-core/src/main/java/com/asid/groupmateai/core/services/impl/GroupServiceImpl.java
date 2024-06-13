@@ -119,7 +119,7 @@ public class GroupServiceImpl implements GroupService {
 
                         if (vFile != null) {
                             // Remove existing files if updated_at of drive file is newer than created_at of vector store file
-                            final Date vFileCreatedDate = new Date(vFile.getCreatedAt());
+                            final Date vFileCreatedDate = new Date(vFile.getCreatedAt() * 1000);
                             final Date dFileModifiedDate = new Date(dFile.getModifiedTime().getValue());
 
                             if (dFileModifiedDate.after(vFileCreatedDate)) {
