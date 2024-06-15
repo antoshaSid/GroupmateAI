@@ -149,11 +149,17 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public void removeGroup(final Long groupId) {
+    public void removeGroup(final Long groupId) throws IOException {
         final GroupEntity groupEntity = getGroup(groupId);
 
         if (groupEntity != null) {
-            vectorStoreClient.deleteVectorStore(groupEntity.getVectorStoreId());
+            final String vectorStoreId = groupEntity.getVectorStoreId();
+            final String driveFolderId = groupEntity.getDriveFolderId();
+
+            vectorStoreClient.listVectorStoreFiles(vectorStoreId)
+                .thenAccept(files -> files.forEach(f -> fileOpenAiClient.deleteFile(f.getId())));
+            vectorStoreClient.deleteVectorStore(vectorStoreId);
+            googleDriveService.deleteFolder(driveFolderId);
             groupRepository.deleteById(groupId);
         }
     }

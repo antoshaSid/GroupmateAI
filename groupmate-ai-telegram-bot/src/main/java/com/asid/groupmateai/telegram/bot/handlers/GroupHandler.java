@@ -6,11 +6,12 @@ import com.asid.groupmateai.core.services.GroupUserService;
 import com.asid.groupmateai.core.services.UserService;
 import com.asid.groupmateai.storage.entities.GroupEntity;
 import com.asid.groupmateai.storage.entities.GroupUserEntity;
+import com.asid.groupmateai.storage.entities.UserRole;
 import com.asid.groupmateai.storage.entities.UserState;
 import com.asid.groupmateai.telegram.bot.handlers.callbacks.BackCallback;
 import com.asid.groupmateai.telegram.bot.handlers.callbacks.GroupCallback;
-import com.asid.groupmateai.telegram.bot.services.impl.KeyboardService;
 import com.asid.groupmateai.telegram.bot.services.I18n;
+import com.asid.groupmateai.telegram.bot.services.KeyboardService;
 import com.asid.groupmateai.telegram.bot.services.TelegramService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -71,6 +73,9 @@ public class GroupHandler implements UpdateHandler {
                     case CHANGE_GROUP_NAME -> this.handleGroupChangeNameCallback(update);
                     case MANAGE_GROUP_FILES -> this.handleManageGroupFilesCallback(update);
                     case UPDATE_CONTEXT -> this.handleUpdateGroupContextCallback(update);
+                    case LEAVE_GROUP -> this.handleLeaveGroupCallback(update);
+                    case LEAVE_GROUP_YES -> this.handleLeaveGroupConfirmCallback(update, true);
+                    case LEAVE_GROUP_NO -> this.handleLeaveGroupConfirmCallback(update, false);
                 }
             } else if (BackCallback.isBackCallback(update)) {
                 this.handleBackCallback(update);
@@ -155,19 +160,18 @@ public class GroupHandler implements UpdateHandler {
     private void handleGroupSettingsCallback(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
         final Integer messageId = telegramService.getMessageIdFromUpdate(update);
-        final GroupEntity group = groupUserService.getGroupUserByChatId(chatId).getGroup();
+        final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+        final GroupEntity group = groupUser.getGroup();
         final int groupUsersCount = groupUserService.countGroupUsersByGroupId(group.getId());
 
         telegramService.updateMessage(chatId, messageId,
             i18n.getMessage("group.settings.message", group.getName(), group.getId(), groupUsersCount),
-            keyboardService.buildGroupSettingsKeyboard());
+            keyboardService.buildGroupSettingsKeyboard(groupUser.getUserRole()));
     }
 
     private void handleBackCallback(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
         final Integer messageId = telegramService.getMessageIdFromUpdate(update);
-        final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
-        final GroupEntity group = groupUser.getGroup();
 
         userService.updateUserState(chatId, UserState.IDLE);
 
@@ -176,16 +180,20 @@ public class GroupHandler implements UpdateHandler {
                 i18n.getMessage("welcome.message", telegramService.getFirstNameFromUpdate(update)),
                 keyboardService.buildWelcomeKeyboard());
             case BACK_GROUP_SETTINGS -> {
+                final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+                final GroupEntity group = groupUser.getGroup();
                 final boolean useQueryKeyboard = Boolean.parseBoolean(groupUser.getMetadata().get("useQueryKeyboard"));
                 telegramService.updateMessage(chatId, messageId,
                     i18n.getMessage("group.welcome.message", group.getName()),
                     keyboardService.buildGroupWelcomeKeyboard(useQueryKeyboard));
             }
             case BACK_CHANGE_GROUP_NAME, BACK_MANAGE_GROUP_FILES -> {
+                final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+                final GroupEntity group = groupUser.getGroup();
                 final int groupUsersCount = groupUserService.countGroupUsersByGroupId(group.getId());
                 telegramService.updateMessage(chatId, messageId,
                     i18n.getMessage("group.settings.message", group.getName(), group.getId(), groupUsersCount),
-                    keyboardService.buildGroupSettingsKeyboard());
+                    keyboardService.buildGroupSettingsKeyboard(groupUser.getUserRole()));
             }
         }
     }
@@ -251,7 +259,8 @@ public class GroupHandler implements UpdateHandler {
 
     private void handleGroupNameChange(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
-        final GroupEntity group = groupUserService.getGroupUserByChatId(chatId).getGroup();
+        final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+        final GroupEntity group = groupUser.getGroup();
         final int groupUsersCount = groupUserService.countGroupUsersByGroupId(group.getId());
         final String newGroupName = telegramService.getMessageTextFromUpdate(update);
         final String messageId = userService.getUser(chatId)
@@ -266,14 +275,13 @@ public class GroupHandler implements UpdateHandler {
         telegramService.sendMessage(chatId, i18n.getMessage("group.name.changed.successfully.message", newGroupName));
         telegramService.sendMessage(chatId,
             i18n.getMessage("group.settings.message", newGroupName, group.getId(), groupUsersCount),
-            keyboardService.buildGroupSettingsKeyboard());
+            keyboardService.buildGroupSettingsKeyboard(groupUser.getUserRole()));
     }
 
     private void handleManageGroupFilesCallback(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
         final Integer messageId = telegramService.getMessageIdFromUpdate(update);
-        final String folderId = groupUserService.getGroupUserByChatId(chatId)
-            .getGroup()
+        final String folderId = groupUserService.getGroupByChatId(chatId)
             .getDriveFolderId();
         final String folderLink = googleDriveService.getFolderShareableLink(folderId);
 
@@ -284,7 +292,8 @@ public class GroupHandler implements UpdateHandler {
 
     private void handleUpdateGroupContextCallback(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
-        final Long groupId = groupUserService.getGroupUserByChatId(chatId).getGroup().getId();
+        final Long groupId = groupUserService.getGroupByChatId(chatId)
+            .getId();
 
         groupService.updateGroupContext(groupId)
             .thenAccept(updated -> {
@@ -294,5 +303,49 @@ public class GroupHandler implements UpdateHandler {
                     telegramService.sendMessage(chatId, i18n.getMessage("group.context.update.error.message"));
                 }
             });
+    }
+
+    private void handleLeaveGroupCallback(final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+        final Integer messageId = telegramService.getMessageIdFromUpdate(update);
+        final UserRole userRole = groupUserService.getUserRoleByChatId(chatId);
+
+        if (userRole != null) {
+            final boolean isAdmin = userRole == UserRole.ADMIN;
+            telegramService.updateMessage(chatId, messageId,
+                i18n.getMessage(isAdmin ? "leave.group.admin.confirm.message" : "leave.group.user.confirm.message"),
+                keyboardService.buildLeaveGroupConfirmKeyboard());
+        }
+    }
+
+    private void handleLeaveGroupConfirmCallback(final Update update, final boolean confirm) throws IOException {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+        final Integer messageId = telegramService.getMessageIdFromUpdate(update);
+        final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+
+        if (groupUser != null) {
+            if (confirm) {
+                final List<Long> leftGroupUsers =
+                    groupUserService.removeUserFromGroup(chatId, groupUser.getUserRole() == UserRole.ADMIN);
+
+                userService.updateUserState(chatId, UserState.IDLE);
+                telegramService.deleteMessage(chatId, messageId);
+                telegramService.sendMessage(chatId, i18n.getMessage("group.left.successfully.message"));
+                telegramService.sendMessage(chatId,
+                    i18n.getMessage("welcome.message", telegramService.getFirstNameFromUpdate(update)),
+                    keyboardService.buildWelcomeKeyboard());
+
+                this.handleLeftGroupUsers(leftGroupUsers, groupUser.getGroup().getName());
+            } else {
+                this.handleGroupSettingsCallback(update);
+            }
+        }
+    }
+
+    private void handleLeftGroupUsers(final List<Long> leftGroupUsers, final String groupName) {
+        leftGroupUsers.parallelStream().forEach(chatId -> {
+            userService.updateUserState(chatId, UserState.IDLE);
+            telegramService.sendMessage(chatId, i18n.getMessage("group.deleted.by.admin.message", groupName));
+        });
     }
 }

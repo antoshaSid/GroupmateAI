@@ -7,7 +7,7 @@ import com.asid.groupmateai.storage.entities.UserEntity;
 import com.asid.groupmateai.storage.entities.UserState;
 import com.asid.groupmateai.telegram.bot.services.I18n;
 import com.asid.groupmateai.telegram.bot.services.TelegramService;
-import com.asid.groupmateai.telegram.bot.services.impl.KeyboardService;
+import com.asid.groupmateai.telegram.bot.services.KeyboardService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;

@@ -1,6 +1,5 @@
-package com.asid.groupmateai.telegram.bot.services.impl;
+package com.asid.groupmateai.telegram.bot.services;
 
-import com.asid.groupmateai.telegram.bot.services.TelegramService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

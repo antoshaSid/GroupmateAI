@@ -1,8 +1,11 @@
 package com.asid.groupmateai.core.services;
 
+import com.asid.groupmateai.storage.entities.GroupEntity;
 import com.asid.groupmateai.storage.entities.GroupUserEntity;
+import com.asid.groupmateai.storage.entities.UserRole;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface GroupUserService {
 
@@ -12,11 +15,22 @@ public interface GroupUserService {
 
     GroupUserEntity getGroupUserByChatId(Long userChatId);
 
+    GroupEntity getGroupByChatId(Long userChatId);
+
+    UserRole getUserRoleByChatId(Long userChatId);
+
     boolean groupUserExistsByChatId(Long userChatId);
 
     void updateGroupUser(GroupUserEntity groupUserEntity);
 
     int countGroupUsersByGroupId(Long groupId);
 
-    boolean removeUserFromGroup(Long userChatId, boolean deleteGroup);
+    /**
+     * Remove user from group and delete group if needed
+     *
+     * @param userChatId user chat id to delete
+     * @param deleteGroup deletes group if true
+     * @return list of users who were in the group
+     */
+    List<Long> removeUserFromGroup(Long userChatId, boolean deleteGroup) throws IOException;
 }

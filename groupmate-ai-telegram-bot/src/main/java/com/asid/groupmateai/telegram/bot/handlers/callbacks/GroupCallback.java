@@ -15,6 +15,8 @@ public enum GroupCallback {
     MANAGE_GROUP_FILES("manage_group_files_callback"),
     INVITE_PEOPLE("invite_people_callback"),
     LEAVE_GROUP("leave_group_callback"),
+    LEAVE_GROUP_YES("leave_group_yes_callback"),
+    LEAVE_GROUP_NO("leave_group_no_callback"),
     UPDATE_CONTEXT("update_context_callback");
 
     GroupCallback(final String data) {

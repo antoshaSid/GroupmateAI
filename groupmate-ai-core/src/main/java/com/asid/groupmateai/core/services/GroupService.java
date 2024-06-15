@@ -17,5 +17,5 @@ public interface GroupService {
 
     CompletableFuture<Boolean> updateGroupContext(Long groupId);
 
-    void removeGroup(Long groupId);
+    void removeGroup(Long groupId) throws IOException;
 }

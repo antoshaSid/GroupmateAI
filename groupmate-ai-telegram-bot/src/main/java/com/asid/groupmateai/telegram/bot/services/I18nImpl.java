@@ -1,6 +1,5 @@
-package com.asid.groupmateai.telegram.bot.services.impl;
+package com.asid.groupmateai.telegram.bot.services;
 
-import com.asid.groupmateai.telegram.bot.services.I18n;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Service;

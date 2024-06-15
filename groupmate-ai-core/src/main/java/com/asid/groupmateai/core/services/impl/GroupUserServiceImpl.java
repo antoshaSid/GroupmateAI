@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 @Transactional
@@ -119,6 +121,20 @@ public class GroupUserServiceImpl implements GroupUserService {
     }
 
     @Override
+    public GroupEntity getGroupByChatId(final Long userChatId) {
+        return groupUserRepository.findByUserChatId(userChatId)
+            .map(GroupUserEntity::getGroup)
+            .orElse(null);
+    }
+
+    @Override
+    public UserRole getUserRoleByChatId(final Long userChatId) {
+        return groupUserRepository.findByUserChatId(userChatId)
+            .map(GroupUserEntity::getUserRole)
+            .orElse(null);
+    }
+
+    @Override
     public boolean groupUserExistsByChatId(final Long userChatId) {
         return groupUserRepository.existsById(userChatId);
     }
@@ -134,25 +150,26 @@ public class GroupUserServiceImpl implements GroupUserService {
     }
 
     @Override
-    public boolean removeUserFromGroup(final Long userChatId, final boolean deleteGroup) {
+    public List<Long> removeUserFromGroup(final Long userChatId, final boolean deleteGroup) throws IOException {
         final GroupUserEntity groupUser = getGroupUserByChatId(userChatId);
+        final List<Long> groupUserChatIds = new ArrayList<>();
 
         if (groupUser != null) {
             if (deleteGroup) {
                 final Long groupId = groupUser.getGroup().getId();
 
                 groupUserRepository.findByGroupId(groupId).stream()
-                    .map(GroupUserEntity::getThreadId)
-                    .forEach(threadClient::deleteThread);
+                    .peek(gu -> threadClient.deleteThread(gu.getThreadId()))
+                    .map(GroupUserEntity::getUserChatId)
+                    .filter(chatId -> !chatId.equals(userChatId))
+                    .forEach(groupUserChatIds::add);
                 groupService.removeGroup(groupId);
             } else {
                 threadClient.deleteThread(groupUser.getThreadId());
                 groupUserRepository.deleteById(userChatId);
             }
-
-            return true;
         }
 
-        return false;
+        return groupUserChatIds;
     }
 }

@@ -1,9 +1,9 @@
-package com.asid.groupmateai.telegram.bot.services.impl;
+package com.asid.groupmateai.telegram.bot.services;
 
+import com.asid.groupmateai.storage.entities.UserRole;
 import com.asid.groupmateai.telegram.bot.handlers.callbacks.BackCallback;
 import com.asid.groupmateai.telegram.bot.handlers.callbacks.GroupCallback;
 import com.asid.groupmateai.telegram.bot.handlers.callbacks.HelpCallback;
-import com.asid.groupmateai.telegram.bot.services.I18n;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -75,15 +75,23 @@ public class KeyboardService {
             .build();
     }
 
-    public InlineKeyboardMarkup buildGroupSettingsKeyboard() {
-        final InlineKeyboardButton changeGroupNameButton = InlineKeyboardButton.builder()
-            .text(i18n.getMessage("keyboard.button.change.group.name"))
-            .callbackData(GroupCallback.CHANGE_GROUP_NAME.getData())
-            .build();
-        final InlineKeyboardButton manageGroupFilesButton = InlineKeyboardButton.builder()
-            .text(i18n.getMessage("keyboard.button.manage.group.files"))
-            .callbackData(GroupCallback.MANAGE_GROUP_FILES.getData())
-            .build();
+    public InlineKeyboardMarkup buildGroupSettingsKeyboard(final UserRole userRole) {
+        final InlineKeyboardMarkup.InlineKeyboardMarkupBuilder<?, ?> keyboardBuilder = InlineKeyboardMarkup.builder();
+
+        if (userRole == UserRole.ADMIN) {
+            final InlineKeyboardButton changeGroupNameButton = InlineKeyboardButton.builder()
+                .text(i18n.getMessage("keyboard.button.change.group.name"))
+                .callbackData(GroupCallback.CHANGE_GROUP_NAME.getData())
+                .build();
+            final InlineKeyboardButton manageGroupFilesButton = InlineKeyboardButton.builder()
+                .text(i18n.getMessage("keyboard.button.manage.group.files"))
+                .callbackData(GroupCallback.MANAGE_GROUP_FILES.getData())
+                .build();
+
+            keyboardBuilder.keyboardRow(new InlineKeyboardRow(changeGroupNameButton))
+                .keyboardRow(new InlineKeyboardRow(manageGroupFilesButton));
+        }
+
         final InlineKeyboardButton invitePeopleButton = InlineKeyboardButton.builder()
             .text(i18n.getMessage("keyboard.button.invite.people"))
             .callbackData(GroupCallback.INVITE_PEOPLE.getData())
@@ -97,9 +105,7 @@ public class KeyboardService {
             .callbackData(GroupCallback.LEAVE_GROUP.getData())
             .build();
 
-        return InlineKeyboardMarkup.builder()
-            .keyboardRow(new InlineKeyboardRow(changeGroupNameButton))
-            .keyboardRow(new InlineKeyboardRow(manageGroupFilesButton))
+        return keyboardBuilder
             .keyboardRow(new InlineKeyboardRow(invitePeopleButton))
             .keyboardRow(new InlineKeyboardRow(backButton, leaveGroupButton))
             .build();
@@ -147,6 +153,21 @@ public class KeyboardService {
         return InlineKeyboardMarkup.builder()
             .keyboardRow(new InlineKeyboardRow(openDriveButton))
             .keyboardRow(new InlineKeyboardRow(backButton, updateContextButton))
+            .build();
+    }
+
+    public InlineKeyboardMarkup buildLeaveGroupConfirmKeyboard() {
+        final InlineKeyboardButton leaveGroupYes = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.leave.group.yes"))
+            .callbackData(GroupCallback.LEAVE_GROUP_YES.getData())
+            .build();
+        final InlineKeyboardButton leaveGroupNo = InlineKeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.leave.group.no"))
+            .callbackData(GroupCallback.LEAVE_GROUP_NO.getData())
+            .build();
+
+        return InlineKeyboardMarkup.builder()
+            .keyboardRow(new InlineKeyboardRow(leaveGroupYes, leaveGroupNo))
             .build();
     }
 }
