@@ -17,7 +17,7 @@ public final class DispatcherHandler {
         this.updateHandlers = updateHandlers;
     }
 
-    boolean dispatch(final Update update) {
+    public boolean dispatch(final Update update) {
         for (final UpdateHandler updateHandler : updateHandlers) {
             if (updateHandler.canHandleUpdate(update)) {
                 updateHandler.handleUpdate(update);

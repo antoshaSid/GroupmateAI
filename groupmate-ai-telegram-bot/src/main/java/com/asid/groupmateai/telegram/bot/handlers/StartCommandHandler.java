@@ -14,14 +14,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-/**
- * Possible /start command executions:
- * 1. /start in a new bot
- * 2. /start during input state
- * 3. /start in a group
- * 4. /start out of a group
- */
-
 @Component
 @Order(1)
 @Slf4j

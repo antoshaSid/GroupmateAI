@@ -6,5 +6,5 @@ public interface UpdateHandler {
 
     boolean canHandleUpdate(final Update update);
 
-    void handleUpdate(final Update update); // TODO: handle possible exceptions in every handleUpdate method
+    void handleUpdate(final Update update);
 }

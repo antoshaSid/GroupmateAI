@@ -14,7 +14,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class GroupmateAiTelegramBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
     private final String token;
-
     private final DispatcherHandler dispatcherHandler;
 
     @Autowired

@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@Order(4)
+@Order(3)
 @Slf4j
 public class GroupHandler implements UpdateHandler {
 

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Component
-@Order(5)
+@Order(4)
 @Slf4j
 public class ResponseHandler implements UpdateHandler {
 
