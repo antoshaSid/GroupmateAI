@@ -62,19 +62,16 @@ public class StartCommandHandler implements CommandHandler, UpdateHandler {
                 log.info("New user was registered with chat id {}", user.getChatId());
             }
 
-            if (user.getUserState() != UserState.IDLE) {
+            // Force user to be in IDLE state
+            userService.updateUserState(chatId, UserState.IDLE);
 
-                // START command is invoked by a user with input state
-                this.handleInputUserState(user.getUserState(), update);
-            } else if (groupUser != null) {
-
+            if (groupUser != null) {
                 // START command is invoked by a user in a group
                 final boolean useQueryKeyboard = Boolean.parseBoolean(groupUser.getMetadata().get("useQueryKeyboard"));
                 telegramService.sendMessage(chatId,
                     i18n.getMessage("group.welcome.message", groupUser.getGroup().getName()),
                     keyboardService.buildGroupWelcomeKeyboard(useQueryKeyboard));
             } else {
-
                 // START command is invoked by a user not in a group
                 telegramService.sendMessage(chatId,
                     i18n.getMessage("welcome.message", telegramService.getFirstNameFromUpdate(update)),
@@ -83,26 +80,6 @@ public class StartCommandHandler implements CommandHandler, UpdateHandler {
         } catch (final Exception e) {
             log.error("Error occurred in StartCommandHandler with {}.", update, e);
             telegramService.sendMessage(chatId, i18n.getMessage("bot.handler.error.message"));
-        }
-    }
-
-    private void handleInputUserState(final UserState userState, final Update update) {
-        final Long chatId = telegramService.getChatIdFromUpdate(update);
-
-        userService.updateUserState(chatId, UserState.IDLE);
-
-        if (userState == UserState.WAIT_FOR_GROUP_NAME || userState == UserState.WAIT_FOR_GROUP_TOKEN) {
-            telegramService.sendMessage(chatId,
-                i18n.getMessage("welcome.message", telegramService.getFirstNameFromUpdate(update)),
-                keyboardService.buildWelcomeKeyboard());
-        } else if (userState == UserState.WAIT_FOR_NEW_GROUP_NAME) {
-            final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
-            final GroupEntity group = groupUser.getGroup();
-            final int groupUsersCount = groupUserService.countGroupUsersByGroupId(group.getId());
-
-            telegramService.sendMessage(chatId,
-                i18n.getMessage("group.settings.message", group.getName(), group.getId(), groupUsersCount),
-                keyboardService.buildGroupSettingsKeyboard(groupUser.getUserRole()));
         }
     }
 }
