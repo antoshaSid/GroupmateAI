@@ -2,6 +2,7 @@ package com.asid.groupmateai.telegram.bot.handlers;
 
 import com.asid.groupmateai.core.services.GroupUserService;
 import com.asid.groupmateai.core.services.UserService;
+import com.asid.groupmateai.storage.entities.GroupEntity;
 import com.asid.groupmateai.storage.entities.GroupUserEntity;
 import com.asid.groupmateai.storage.entities.UserEntity;
 import com.asid.groupmateai.storage.entities.UserState;
@@ -51,31 +52,57 @@ public class StartCommandHandler implements CommandHandler, UpdateHandler {
     @Override
     public void handleUpdate(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
-        final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
-        UserEntity user = userService.getUser(chatId);
 
-        if (user == null) {
-            user = userService.addUser(chatId);
-            log.info("New user was registered with chat id {}", user.getChatId());
+        try {
+            final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+            UserEntity user = userService.getUser(chatId);
+
+            if (user == null) {
+                user = userService.addUser(chatId);
+                log.info("New user was registered with chat id {}", user.getChatId());
+            }
+
+            if (user.getUserState() != UserState.IDLE) {
+
+                // START command is invoked by a user with input state
+                this.handleInputUserState(user.getUserState(), update);
+            } else if (groupUser != null) {
+
+                // START command is invoked by a user in a group
+                final boolean useQueryKeyboard = Boolean.parseBoolean(groupUser.getMetadata().get("useQueryKeyboard"));
+                telegramService.sendMessage(chatId,
+                    i18n.getMessage("group.welcome.message", groupUser.getGroup().getName()),
+                    keyboardService.buildGroupWelcomeKeyboard(useQueryKeyboard));
+            } else {
+
+                // START command is invoked by a user not in a group
+                telegramService.sendMessage(chatId,
+                    i18n.getMessage("welcome.message", telegramService.getFirstNameFromUpdate(update)),
+                    keyboardService.buildWelcomeKeyboard());
+            }
+        } catch (final Exception e) {
+            log.error("Error occurred in StartCommandHandler with {}.", update, e);
+            telegramService.sendMessage(chatId, i18n.getMessage("bot.handler.error.message"));
         }
+    }
 
-        if (user.getUserState() != UserState.IDLE) {
+    private void handleInputUserState(final UserState userState, final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
 
-            // START command is invoked by a user with WAIT_FOR_INPUT state
-            telegramService.sendMessage(chatId, i18n.getMessage("user.input.reserved.command.error.message", command()));
-        } else if (groupUser != null) {
+        userService.updateUserState(chatId, UserState.IDLE);
 
-            // START command is invoked by a user in a group
-            final boolean useQueryKeyboard = Boolean.parseBoolean(groupUser.getMetadata().get("useQueryKeyboard"));
-            telegramService.sendMessage(chatId,
-                i18n.getMessage("group.welcome.message", groupUser.getGroup().getName()),
-                keyboardService.buildGroupWelcomeKeyboard(useQueryKeyboard));
-        } else {
-
-            // START command is invoked by a user not in a group
+        if (userState == UserState.WAIT_FOR_GROUP_NAME || userState == UserState.WAIT_FOR_GROUP_TOKEN) {
             telegramService.sendMessage(chatId,
                 i18n.getMessage("welcome.message", telegramService.getFirstNameFromUpdate(update)),
                 keyboardService.buildWelcomeKeyboard());
+        } else if (userState == UserState.WAIT_FOR_NEW_GROUP_NAME) {
+            final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
+            final GroupEntity group = groupUser.getGroup();
+            final int groupUsersCount = groupUserService.countGroupUsersByGroupId(group.getId());
+
+            telegramService.sendMessage(chatId,
+                i18n.getMessage("group.settings.message", group.getName(), group.getId(), groupUsersCount),
+                keyboardService.buildGroupSettingsKeyboard(groupUser.getUserRole()));
         }
     }
 }
