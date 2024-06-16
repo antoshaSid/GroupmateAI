@@ -98,7 +98,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(message);
         } catch (final TelegramApiException exception) {
-            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}) during sending message: {}.", chatId, text, exception);
         }
     }
 
@@ -116,7 +116,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(message);
         } catch (final TelegramApiException exception) {
-            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}) during sending message: {}.", chatId, text, exception);
         }
     }
 
@@ -134,7 +134,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(newTextMessage);
         } catch (final TelegramApiException exception) {
-            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}) during updating message: {}.", chatId, text, exception);
         }
     }
 
@@ -154,7 +154,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(newTextMessage);
         } catch (final TelegramApiException exception) {
-            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}) during updating message: {}.", chatId, text, exception);
         }
     }
 
@@ -171,7 +171,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(newInlineKeyboard);
         } catch (final TelegramApiException exception) {
-            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}) during updating message.", chatId, exception);
         }
     }
 
@@ -185,7 +185,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(deleteMessage);
         } catch (final TelegramApiException exception) {
-            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}) during deleting message.", chatId, exception);
         }
     }
 }
