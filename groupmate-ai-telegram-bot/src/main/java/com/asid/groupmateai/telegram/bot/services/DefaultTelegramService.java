@@ -98,7 +98,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(message);
         } catch (final TelegramApiException exception) {
-            this.log(chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
         }
     }
 
@@ -116,7 +116,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(message);
         } catch (final TelegramApiException exception) {
-            this.log(chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
         }
     }
 
@@ -134,7 +134,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(newTextMessage);
         } catch (final TelegramApiException exception) {
-            this.log(chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
         }
     }
 
@@ -154,7 +154,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(newTextMessage);
         } catch (final TelegramApiException exception) {
-            this.log(chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
         }
     }
 
@@ -171,7 +171,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(newInlineKeyboard);
         } catch (final TelegramApiException exception) {
-            this.log(chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
         }
     }
 
@@ -185,12 +185,7 @@ public class DefaultTelegramService implements TelegramService {
 
             telegramClient.execute(deleteMessage);
         } catch (final TelegramApiException exception) {
-            this.log(chatId, exception);
+            log.error("Telegram API exception was thrown in chat ({}).", chatId, exception);
         }
-    }
-
-    private void log(final Long chatId, final TelegramApiException exception) {
-        log.error("Telegram error occurred in chat ({}): {}", chatId, exception.getMessage());
-        exception.printStackTrace();
     }
 }
