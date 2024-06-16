@@ -63,6 +63,8 @@ public class GroupHandler implements UpdateHandler {
 
     @Override
     public void handleUpdate(final Update update) {
+        final Long chatId = telegramService.getChatIdFromUpdate(update);
+
         try {
             if (GroupCallback.isGroupCallback(update)) {
                 switch (GroupCallback.getInstance(update)) {
@@ -80,7 +82,6 @@ public class GroupHandler implements UpdateHandler {
             } else if (BackCallback.isBackCallback(update)) {
                 this.handleBackCallback(update);
             } else if (telegramService.hasMessageText(update)) {
-                final Long chatId = telegramService.getChatIdFromUpdate(update);
                 switch (userService.getUserState(chatId)) {
                     case WAIT_FOR_GROUP_NAME -> this.handleGroupCreation(update);
                     case WAIT_FOR_GROUP_TOKEN -> this.handleGroupJoin(update);
@@ -88,8 +89,8 @@ public class GroupHandler implements UpdateHandler {
                 }
             }
         } catch (final Exception e) {
-            log.error("Error occurred while handling group-related update", e);
-            // TODO: handle all possible exception cases in all handlers
+            log.error("Error occurred in GroupHandler with {}.", update, e);
+            telegramService.sendMessage(chatId, i18n.getMessage("bot.handler.error.message"));
         }
     }
 

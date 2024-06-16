@@ -47,21 +47,27 @@ public class ResponseHandler implements UpdateHandler {
     @Override
     public void handleUpdate(final Update update) {
         final Long chatId = telegramService.getChatIdFromUpdate(update);
-        final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
 
-        if (groupUser != null) {
-            final String messageText = telegramService.getMessageTextFromUpdate(update);
-            final String threadId = groupUser.getThreadId();
+        try {
+            final GroupUserEntity groupUser = groupUserService.getGroupUserByChatId(chatId);
 
-            try {
-                final String response = userThreadService.generateResponse(threadId, messageText);
-                telegramService.sendMessage(chatId, response);
-            } catch (final ResponseGenerationException e) {
-                log.error(e.getMessage(), e);
-                telegramService.sendMessage(chatId, i18n.getMessage("user.input.generate.response.error.message"));
+            if (groupUser != null) {
+                final String messageText = telegramService.getMessageTextFromUpdate(update);
+                final String threadId = groupUser.getThreadId();
+
+                try {
+                    final String response = userThreadService.generateResponse(threadId, messageText);
+                    telegramService.sendMessage(chatId, response);
+                } catch (final ResponseGenerationException e) {
+                    log.error(e.getMessage(), e);
+                    telegramService.sendMessage(chatId, i18n.getMessage("user.input.generate.response.error.message"));
+                }
+            } else {
+                telegramService.sendMessage(chatId, i18n.getMessage("user.input.join.group.first.error.message"));
             }
-        } else {
-            telegramService.sendMessage(chatId, i18n.getMessage("user.input.join.group.first.error.message"));
+        } catch (final Exception e) {
+            log.error("Error occurred in ResponseHandler with {}.", update, e);
+            telegramService.sendMessage(chatId, i18n.getMessage("bot.handler.error.message"));
         }
     }
 }
