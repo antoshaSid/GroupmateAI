@@ -57,7 +57,8 @@ public class UserThreadServiceImpl implements UserThreadService {
 
                 if (messageContent instanceof ThreadMessageContent.TextContent textContent) {
                     final ThreadMessageContent.TextContent.TextAnnotation text = textContent.getText();
-                    yield removeTextAnnotations(text.getValue(), text.getAnnotations());
+                    final String textWithoutAnnotations = removeTextAnnotations(text.getValue(), text.getAnnotations());
+                    yield filterMarkdown(textWithoutAnnotations);
                 } else if (messageContent instanceof ThreadMessageContent.ImageFileContent imageContent) {
                     throw new ResponseGenerationException(format("Image content is not supported: %s. User query: %s.",
                             imageContent, messageText));
@@ -79,5 +80,28 @@ public class UserThreadServiceImpl implements UserThreadService {
         }
 
         return text;
+    }
+
+    private String filterMarkdown(String input) {
+        // Escape characters that don't represent markdown
+        input = escapeNonMarkdownCharacters(input);
+
+        // Replace **Bold Text** with *bold text*
+        input = input.replaceAll("\\*\\*(.*?)\\*\\*", "*$1*");
+
+        // Replace Horizontal Line ---
+        input = input.replaceAll("---", "——————————————");
+
+        return input;
+    }
+
+    private String escapeNonMarkdownCharacters(String input) {
+        // Replace single asterisks that are not part of a double asterisk
+        input = input.replaceAll("(?<!\\*)\\*(?!\\*)", "\\\\*");
+
+        input = input.replace("_", "\\_")
+            .replace("[", "\\[");
+
+        return input;
     }
 }
