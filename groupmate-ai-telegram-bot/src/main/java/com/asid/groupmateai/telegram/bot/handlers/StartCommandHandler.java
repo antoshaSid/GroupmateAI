@@ -2,13 +2,12 @@ package com.asid.groupmateai.telegram.bot.handlers;
 
 import com.asid.groupmateai.core.services.GroupUserService;
 import com.asid.groupmateai.core.services.UserService;
-import com.asid.groupmateai.storage.entities.GroupEntity;
 import com.asid.groupmateai.storage.entities.GroupUserEntity;
 import com.asid.groupmateai.storage.entities.UserEntity;
 import com.asid.groupmateai.storage.entities.UserState;
 import com.asid.groupmateai.telegram.bot.services.I18n;
-import com.asid.groupmateai.telegram.bot.services.TelegramService;
 import com.asid.groupmateai.telegram.bot.services.KeyboardService;
+import com.asid.groupmateai.telegram.bot.services.TelegramService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;

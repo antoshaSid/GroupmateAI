@@ -135,11 +135,6 @@ public class GroupUserServiceImpl implements GroupUserService {
     }
 
     @Override
-    public boolean groupUserExistsByChatId(final Long userChatId) {
-        return groupUserRepository.existsById(userChatId);
-    }
-
-    @Override
     public void updateGroupUser(final GroupUserEntity groupUserEntity) {
         groupUserRepository.save(groupUserEntity);
     }

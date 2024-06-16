@@ -27,7 +27,6 @@ import java.util.concurrent.CompletableFuture;
  * <p>
  * 1. Create message
  * 2. List all messages
- * 3. Delete message | TODO: Not implemented yet
  * <p>
  * Runs
  * <p>

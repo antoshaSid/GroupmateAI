@@ -19,8 +19,6 @@ public interface GroupUserService {
 
     UserRole getUserRoleByChatId(Long userChatId);
 
-    boolean groupUserExistsByChatId(Long userChatId);
-
     void updateGroupUser(GroupUserEntity groupUserEntity);
 
     int countGroupUsersByGroupId(Long groupId);

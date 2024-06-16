@@ -7,12 +7,10 @@ import io.github.sashirestela.openai.domain.assistant.FileStatus;
 import io.github.sashirestela.openai.domain.assistant.Thread;
 import io.github.sashirestela.openai.domain.assistant.VectorStore;
 import io.github.sashirestela.openai.domain.assistant.VectorStoreFile;
-import io.github.sashirestela.openai.domain.file.FileRequest;
 import io.github.sashirestela.openai.domain.file.FileResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
@@ -26,9 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = TestCoreModuleConfiguration.class)
 public class OpenAiClientsTest {
-
-    @Value("${OPENAI_ASSISTANT_ID}")
-    private String assistantId;
 
     @Autowired
     private FileOpenAiClient fileOpenAiClient;
@@ -63,7 +58,6 @@ public class OpenAiClientsTest {
             assertTrue(response.contains("3 subjects"));
             System.out.println("Thread was completed with response: " + response);
         } catch (final Exception e) {
-            e.printStackTrace();
             fail(e.getMessage());
         } finally {
             cleanConversation(fileId, vectorStoreId, threadId);
