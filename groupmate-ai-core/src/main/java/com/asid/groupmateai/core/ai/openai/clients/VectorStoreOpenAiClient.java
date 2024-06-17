@@ -45,17 +45,16 @@ public class VectorStoreOpenAiClient extends OpenAiClient {
     }
 
     public CompletableFuture<VectorStore> createVectorStore(final String name) {
-        return this.openAiClient.vectorStores()
+        return handleRequestWithRetry(client -> client.vectorStores()
             .create(VectorStoreRequest.builder().name(name).build())
             .thenApply(vs -> {
                 log.debug("Vector store was created: {}", vs.getId());
                 return vs;
-            });
-
+            }));
     }
 
     public CompletableFuture<DeletedObject> deleteVectorStore(final String vectorStoreId) {
-        return this.openAiClient.vectorStores()
+        return handleRequestWithRetry(client -> client.vectorStores()
             .delete(vectorStoreId)
             .thenApply(deleted -> {
                 if (deleted.getDeleted()) {
@@ -65,35 +64,35 @@ public class VectorStoreOpenAiClient extends OpenAiClient {
                 }
 
                 return deleted;
-            });
+            }));
     }
 
     public CompletableFuture<VectorStoreFile> createVectorStoreFile(final String vectorStoreId, final String fileId) {
-        return this.openAiClient.vectorStoreFiles()
+        return handleRequestWithRetry(client -> client.vectorStoreFiles()
             .create(vectorStoreId, fileId)
-            .thenApply(this::waitUntilVectorStoreFileInProgress);
+            .thenApply(this::waitUntilVectorStoreFileInProgress));
     }
 
     public CompletableFuture<VectorStoreFile> getVectorStoreFile(final String vectorStoreId, final String fileId) {
-        return this.openAiClient.vectorStoreFiles()
+        return handleRequestWithRetry(client -> client.vectorStoreFiles()
             .getOne(vectorStoreId, fileId)
             .thenApply(file -> {
                 log.debug("Vector store file was retrieved: {}", file.getId());
                 return file;
-            });
+            }));
     }
 
     public CompletableFuture<List<VectorStoreFile>> listVectorStoreFiles(final String vectorStoreId) {
-        return this.openAiClient.vectorStoreFiles()
+        return handleRequestWithRetry(client -> client.vectorStoreFiles()
             .getList(vectorStoreId)
             .thenApply(files -> {
                 log.debug("Vector store files were retrieved: {}", vectorStoreId);
                 return files;
-            });
+            }));
     }
 
     public CompletableFuture<DeletedObject> deleteVectorStoreFile(final String vectorStoreId, final String fileId) {
-        return this.openAiClient.vectorStoreFiles()
+        return handleRequestWithRetry(client -> client.vectorStoreFiles()
             .delete(vectorStoreId, fileId)
             .thenApply(deleted -> {
                 if (deleted.getDeleted()) {
@@ -103,34 +102,34 @@ public class VectorStoreOpenAiClient extends OpenAiClient {
                 }
 
                 return deleted;
-            });
+            }));
     }
 
     public CompletableFuture<VectorStoreFileBatch> createVectorStoreFileBatch(final String vectorStoreId,
                                                                               final List<String> fileIds) {
-        return this.openAiClient.vectorStoreFileBatches()
+        return handleRequestWithRetry(client -> client.vectorStoreFileBatches()
             .create(vectorStoreId, fileIds)
-            .thenApply(this::waitUntilVectorStoreFileBatchInProgress);
+            .thenApply(this::waitUntilVectorStoreFileBatchInProgress));
     }
 
     public CompletableFuture<VectorStoreFileBatch> getVectorStoreFileBatch(final String vectorStoreId,
                                                                            final String fileBatchId) {
-        return this.openAiClient.vectorStoreFileBatches()
+        return handleRequestWithRetry(client -> client.vectorStoreFileBatches()
             .getOne(vectorStoreId, fileBatchId)
             .thenApply(fileBatch -> {
                 log.debug("Vector store file batch was retrieved: {}", fileBatch.getId());
                 return fileBatch;
-            });
+            }));
     }
 
     public CompletableFuture<List<VectorStoreFile>> listVectorStoreFilesInBatch(final String vectorStoreId,
                                                                                 final String fileBatchId) {
-        return this.openAiClient.vectorStoreFileBatches()
+        return handleRequestWithRetry(client -> client.vectorStoreFileBatches()
             .getFiles(vectorStoreId, fileBatchId)
             .thenApply(files -> {
                 log.debug("Vector store files in batch were retrieved: {}", fileBatchId);
                 return files;
-            });
+            }));
     }
 
     private VectorStoreFile waitUntilVectorStoreFileInProgress(VectorStoreFile file) {

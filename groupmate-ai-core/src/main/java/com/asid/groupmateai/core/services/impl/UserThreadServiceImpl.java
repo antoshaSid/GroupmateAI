@@ -21,11 +21,11 @@ public class UserThreadServiceImpl implements UserThreadService {
     @Value("${OPENAI_ASSISTANT_ID}")
     private String assistantId;
 
-    private final ThreadOpenAiClient threadOpenAiClient;
+    private final ThreadOpenAiClient threadClient;
 
     @Autowired
-    public UserThreadServiceImpl(final ThreadOpenAiClient threadOpenAiClient) {
-        this.threadOpenAiClient = threadOpenAiClient;
+    public UserThreadServiceImpl(final ThreadOpenAiClient threadClient) {
+        this.threadClient = threadClient;
     }
 
     @Override
@@ -35,18 +35,18 @@ public class UserThreadServiceImpl implements UserThreadService {
             .content(messageText)
             .build();
 
-        threadOpenAiClient.createThreadMessage(threadId, threadMessageRequest).join();
+        threadClient.createThreadMessage(threadId, threadMessageRequest).join();
 
         final ThreadRunRequest runRequest = ThreadRunRequest.builder()
             .assistantId(assistantId)
             .tool(FILE_SEARCH)
             .build();
 
-        final ThreadRun threadRun = threadOpenAiClient.runThread(threadId, runRequest);
+        final ThreadRun threadRun = threadClient.runThread(threadId, runRequest).join();
 
         return switch (threadRun.getStatus()) {
             case COMPLETED -> {
-                final ThreadMessageContent messageContent = threadOpenAiClient.listThreadMessagesByRunId(threadId, threadRun.getId())
+                final ThreadMessageContent messageContent = threadClient.listThreadMessagesByRunId(threadId, threadRun.getId())
                     .join()
                     .stream()
                     .findFirst()

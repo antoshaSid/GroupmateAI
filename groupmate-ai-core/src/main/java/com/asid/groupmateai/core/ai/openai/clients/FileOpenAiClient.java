@@ -38,22 +38,21 @@ public class FileOpenAiClient extends OpenAiClient {
             .purpose(FileRequest.PurposeType.ASSISTANTS)
             .build();
 
-        return this.openAiClient.files()
+        return handleRequestWithRetry(client -> client.files()
             .create(fileRequest)
             .thenApply(file -> {
                 log.debug("File was uploaded: {}", file.getId());
                 return file;
-            });
-
+            }));
     }
 
     public CompletableFuture<FileResponse> getFile(final String fileId) {
-        return this.openAiClient.files()
-            .getOne(fileId);
+        return handleRequestWithRetry(client -> client.files()
+            .getOne(fileId));
     }
 
     public CompletableFuture<DeletedObject> deleteFile(final String fileId) {
-        return this.openAiClient.files()
+        return handleRequestWithRetry(client -> client.files()
             .delete(fileId)
             .thenApply(deleted -> {
                 if (deleted.getDeleted()) {
@@ -63,6 +62,6 @@ public class FileOpenAiClient extends OpenAiClient {
                 }
 
                 return deleted;
-            });
+            }));
     }
 }
