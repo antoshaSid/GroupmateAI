@@ -4,6 +4,7 @@ import io.github.sashirestela.openai.SimpleOpenAI;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 
 @Slf4j
@@ -18,16 +19,19 @@ public abstract class OpenAiClient {
     }
 
     protected <T> CompletableFuture<T> handleRequestWithRetry(final Function<SimpleOpenAI, CompletableFuture<T>> request) {
-        short attempts = 0;
-        while (attempts < MAX_RETRIES) {
-            try {
-                return request.apply(this.openAiClient);
-            } catch (final Exception e) {
-                attempts++;
-                log.warn("OpenAi client request failed, retrying... Attempt: {}", attempts, e);
-            }
-        }
+        return withRetry(request, MAX_RETRIES);
+    }
 
-        throw new RuntimeException("Max retries exceeded");
+    private <T> CompletableFuture<T> withRetry(final Function<SimpleOpenAI, CompletableFuture<T>> request,
+                                               int maxRetries) {
+        return request.apply(this.openAiClient)
+            .exceptionally(ex -> {
+                if (maxRetries > 0) {
+                    log.warn("OpenAI client request failed, retrying...");
+                    return withRetry(request, maxRetries - 1).join();
+                } else {
+                    throw new CompletionException(ex);
+                }
+        });
     }
 }
