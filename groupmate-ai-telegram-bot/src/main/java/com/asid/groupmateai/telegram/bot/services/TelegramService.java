@@ -18,7 +18,7 @@ public interface TelegramService {
 
     Long getChatIdFromUpdate(Update update);
 
-    void sendMessage(Long chatId, String text);
+    Integer sendMessage(Long chatId, String text);
 
     void sendMessage(Long chatId, String text, ReplyKeyboard keyboard);
 

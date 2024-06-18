@@ -88,7 +88,7 @@ public class DefaultTelegramService implements TelegramService {
     }
 
     @Override
-    public void sendMessage(final Long chatId, final String text) {
+    public Integer sendMessage(final Long chatId, final String text) {
         try {
             final SendMessage message = SendMessage.builder()
                 .chatId(chatId)
@@ -96,9 +96,10 @@ public class DefaultTelegramService implements TelegramService {
                 .parseMode(ParseMode.MARKDOWN)
                 .build();
 
-            telegramClient.execute(message);
+            return telegramClient.execute(message).getMessageId();
         } catch (final TelegramApiException exception) {
             log.error("Telegram API exception was thrown in chat ({}) during sending message: {}.", chatId, text, exception);
+            return null;
         }
     }
 

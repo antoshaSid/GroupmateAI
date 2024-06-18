@@ -14,6 +14,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
 @Component
 @Order(4)
 @Slf4j
@@ -55,13 +58,17 @@ public class ResponseHandler implements UpdateHandler {
                 final String messageText = telegramService.getMessageTextFromUpdate(update);
                 final String threadId = groupUser.getThreadId();
 
-                try {
-                    final String response = userThreadService.generateResponse(threadId, messageText);
-                    telegramService.sendMessage(chatId, response);
-                } catch (final ResponseGenerationException e) {
-                    log.error(e.getMessage(), e);
-                    telegramService.sendMessage(chatId, i18n.getMessage("user.input.generate.response.error.message"));
-                }
+                final Integer messageId = telegramService.sendMessage(chatId, i18n.getMessage("user.response.generation.in.process.message"));
+
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        final String response = userThreadService.generateResponse(threadId, messageText);
+                        telegramService.updateMessage(chatId, messageId, response);
+                    } catch (final ResponseGenerationException | CompletionException e) {
+                        log.error(e.getMessage(), e);
+                        telegramService.updateMessage(chatId, messageId, i18n.getMessage("user.input.generate.response.error.message"));
+                    }
+                });
             } else {
                 telegramService.sendMessage(chatId, i18n.getMessage("user.input.join.group.first.error.message"));
             }
