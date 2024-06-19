@@ -4,6 +4,7 @@ import com.asid.groupmateai.core.ai.openai.clients.FileOpenAiClient;
 import com.asid.groupmateai.core.ai.openai.clients.VectorStoreOpenAiClient;
 import com.asid.groupmateai.core.services.GoogleDriveService;
 import com.asid.groupmateai.core.services.GroupService;
+import com.asid.groupmateai.core.utils.FileExtensionManager;
 import com.asid.groupmateai.storage.entities.GroupEntity;
 import com.asid.groupmateai.storage.repositories.GroupRepository;
 import com.google.api.services.drive.model.File;
@@ -11,8 +12,6 @@ import io.github.sashirestela.openai.domain.assistant.FileStatus;
 import io.github.sashirestela.openai.domain.assistant.VectorStoreFile;
 import io.github.sashirestela.openai.domain.file.FileResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -138,7 +137,7 @@ public class GroupServiceImpl implements GroupService {
                     vectorFilesToDelete.parallelStream().forEach(vFile -> fileOpenAiClient.deleteFile(vFile.getId()).join());
 
                     return true;
-                } catch (final IOException e) {
+                } catch (final Exception e) {
                     log.warn("Failed to update group context", e);
                     return false;
                 }
@@ -165,7 +164,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     private void uploadDriveFileToVectorStore(final File file, final String vectorStoreId) throws IOException {
-        final Path tempFile = Files.createTempFile(file.getId(), getFileExtension(file.getMimeType()));
+        final Path tempFile = Files.createTempFile(file.getId(), FileExtensionManager.getExtension(file.getMimeType()));
 
         try (final InputStream in = googleDriveService.readFile(file.getId())) {
             Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
@@ -179,19 +178,10 @@ public class GroupServiceImpl implements GroupService {
                 vectorStoreFile = vectorStoreClient.getVectorStoreFile(vectorStoreId, vectorStoreFile.getId())
                     .join();
             }
-        } catch (final InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (final Exception e) {
+            log.error("Failed to upload file to vector store", e);
         } finally {
             Files.deleteIfExists(tempFile);
-        }
-    }
-
-    private String getFileExtension(final String mimeType) {
-        try {
-            final MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
-            return allTypes.forName(mimeType).getExtension();
-        } catch (final MimeTypeException e) {
-            return ".txt";
         }
     }
 }
