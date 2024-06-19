@@ -1,5 +1,6 @@
 package com.asid.groupmateai.core.utils;
 
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Map.entry;
@@ -31,7 +32,18 @@ public final class FileExtensionManager {
             entry("text/texmacs", ".ts")
     );
 
+    public static boolean isSupported(final String mimeType) {
+        return MIME_TYPE_TO_EXTENSION.containsKey(mimeType);
+    }
+
     public static String getExtension(final String mimeType) {
-        return MIME_TYPE_TO_EXTENSION.getOrDefault(mimeType, ".txt"); // TODO: remove default value
+        return MIME_TYPE_TO_EXTENSION.getOrDefault(mimeType, ".txt");
+    }
+
+    public static List<String> getSupportedExtensions() {
+        return MIME_TYPE_TO_EXTENSION.values()
+            .stream()
+            .distinct()
+            .toList();
     }
 }

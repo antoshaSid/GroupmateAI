@@ -21,9 +21,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -94,7 +96,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public CompletableFuture<Boolean> updateGroupContext(final Long groupId) {
+    public CompletableFuture<List<String>> updateGroupContext(final Long groupId) {
         final GroupEntity groupEntity = getGroup(groupId);
 
         if (groupEntity != null) {
@@ -103,6 +105,7 @@ public class GroupServiceImpl implements GroupService {
 
             return CompletableFuture.supplyAsync(() -> {
                 try {
+                    final List<String> unsupportedFileExtensions = new ArrayList<>();
                     final List<File> driveFiles = googleDriveService.getFilesByFolderId(folderId);
                     final List<FileResponse> vectorFilesToDelete = vectorStoreClient.listVectorStoreFiles(vectorStoreId)
                         .join()
@@ -123,27 +126,27 @@ public class GroupServiceImpl implements GroupService {
 
                             if (dFileModifiedDate.after(vFileCreatedDate)) {
                                 fileOpenAiClient.deleteFile(vFile.getId()).join();
-                                this.uploadDriveFileToVectorStore(dFile, vectorStoreId);
+                                this.uploadDriveFileToVectorStore(dFile, vectorStoreId, unsupportedFileExtensions);
                             }
 
                             vectorFilesToDelete.remove(vFile);
                         } else {
                             // Add files that are not in the vector store
-                            this.uploadDriveFileToVectorStore(dFile, vectorStoreId);
+                            this.uploadDriveFileToVectorStore(dFile, vectorStoreId, unsupportedFileExtensions);
                         }
                     }
 
                     // Remove files that are not in the drive
                     vectorFilesToDelete.parallelStream().forEach(vFile -> fileOpenAiClient.deleteFile(vFile.getId()).join());
 
-                    return true;
+                    return unsupportedFileExtensions;
                 } catch (final Exception e) {
                     log.warn("Failed to update group context", e);
-                    return false;
+                    throw new CompletionException(e);
                 }
             });
         } else {
-            return CompletableFuture.completedFuture(false);
+            throw new CompletionException(new IllegalArgumentException("Group not found"));
         }
     }
 
@@ -156,14 +159,21 @@ public class GroupServiceImpl implements GroupService {
             final String driveFolderId = groupEntity.getDriveFolderId();
 
             vectorStoreClient.listVectorStoreFiles(vectorStoreId)
-                .thenAccept(files -> files.forEach(f -> fileOpenAiClient.deleteFile(f.getId())));
-            vectorStoreClient.deleteVectorStore(vectorStoreId);
+                .thenAccept(files -> files.forEach(f -> fileOpenAiClient.deleteFile(f.getId()).join()))
+                .thenRun(() -> vectorStoreClient.deleteVectorStore(vectorStoreId));
             googleDriveService.deleteFolder(driveFolderId);
             groupRepository.deleteById(groupId);
         }
     }
 
-    private void uploadDriveFileToVectorStore(final File file, final String vectorStoreId) throws IOException {
+    private void uploadDriveFileToVectorStore(final File file,
+                                              final String vectorStoreId,
+                                              final List<String> unsupportedFileExtensions) throws IOException {
+        if (!FileExtensionManager.isSupported(file.getMimeType())) {
+            unsupportedFileExtensions.add(file.getName());
+            return;
+        }
+
         final Path tempFile = Files.createTempFile(file.getId(), FileExtensionManager.getExtension(file.getMimeType()));
 
         try (final InputStream in = googleDriveService.readFile(file.getId())) {

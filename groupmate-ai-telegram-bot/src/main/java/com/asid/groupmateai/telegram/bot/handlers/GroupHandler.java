@@ -4,6 +4,7 @@ import com.asid.groupmateai.core.services.GoogleDriveService;
 import com.asid.groupmateai.core.services.GroupService;
 import com.asid.groupmateai.core.services.GroupUserService;
 import com.asid.groupmateai.core.services.UserService;
+import com.asid.groupmateai.core.utils.FileExtensionManager;
 import com.asid.groupmateai.storage.entities.GroupEntity;
 import com.asid.groupmateai.storage.entities.GroupUserEntity;
 import com.asid.groupmateai.storage.entities.UserRole;
@@ -300,15 +301,22 @@ public class GroupHandler implements UpdateHandler {
 
         long startMillis = System.currentTimeMillis();
         groupService.updateGroupContext(groupId)
-            .thenAccept(updated -> {
-                if (updated) {
+            .handle((unsupportedFileNames, ex) -> {
+                if (ex != null) {
+                    telegramService.updateMessage(chatId, messageId,
+                        i18n.getMessage("group.context.update.error.message"));
+                } else if (unsupportedFileNames.isEmpty()) {
                     log.info("Group context was updated in {} ms", System.currentTimeMillis() - startMillis);
                     telegramService.updateMessage(chatId, messageId,
                         i18n.getMessage("group.context.updated.successfully.message"));
                 } else {
                     telegramService.updateMessage(chatId, messageId,
-                        i18n.getMessage("group.context.update.error.message"));
+                        i18n.getMessage("invalid.file.extension.error.message", crossedList(unsupportedFileNames)));
+                    telegramService.sendMessage(chatId, i18n.getMessage("valid.file.extensions.message",
+                        optionedList(FileExtensionManager.getSupportedExtensions())));
                 }
+
+                return null;
             });
     }
 
@@ -354,5 +362,29 @@ public class GroupHandler implements UpdateHandler {
             userService.updateUserState(chatId, UserState.IDLE);
             telegramService.sendMessage(chatId, i18n.getMessage("group.deleted.by.admin.message", groupName));
         });
+    }
+
+    private String optionedList(final List<String> list) { // TODO: move to another place
+        final StringBuilder options = new StringBuilder();
+
+        for (final String value : list) {
+            options.append("\uD83D\uDD39 ")
+                .append(value)
+                .append("\n");
+        }
+
+        return options.toString();
+    }
+
+    private String crossedList(final List<String> list) { // TODO: move to another place
+        final StringBuilder options = new StringBuilder();
+
+        for (final String value : list) {
+            options.append("❌ ")
+                .append(value)
+                .append("\n");
+        }
+
+        return options.toString();
     }
 }
