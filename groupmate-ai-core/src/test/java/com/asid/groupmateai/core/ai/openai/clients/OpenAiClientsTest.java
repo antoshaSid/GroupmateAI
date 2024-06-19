@@ -65,20 +65,26 @@ public class OpenAiClientsTest {
     }
 
     public void cleanConversation(final String fileId, final String vectorStoreId, final String threadId) {
-        final DeletedObject deletedFile = fileOpenAiClient.deleteFile(fileId)
-            .join();
-        final DeletedObject deletedVectorStore = vectorStoreOpenAiClient.deleteVectorStore(vectorStoreId)
-            .join();
-        final DeletedObject deletedThread = threadOpenAiClient.deleteThread(threadId)
-            .join();
+        if (fileId != null) {
+            final DeletedObject deletedFile = fileOpenAiClient.deleteFile(fileId)
+                .join();
+            assertTrue(deletedFile.getDeleted());
+            System.out.println("File was deleted: " + deletedFile.getDeleted());
+        }
 
-        assertTrue(deletedFile.getDeleted());
-        assertTrue(deletedVectorStore.getDeleted());
-        assertTrue(deletedThread.getDeleted());
+        if (vectorStoreId != null) {
+            final DeletedObject deletedVectorStore = vectorStoreOpenAiClient.deleteVectorStore(vectorStoreId)
+                .join();
+            assertTrue(deletedVectorStore.getDeleted());
+            System.out.println("Vector Store was deleted: " + deletedVectorStore.getDeleted());
+        }
 
-        System.out.println("File was deleted: " + deletedFile.getDeleted());
-        System.out.println("Vector Store was deleted: " + deletedVectorStore.getDeleted());
-        System.out.println("Thread was deleted: " + deletedThread.getDeleted());
+        if (threadId != null) {
+            final DeletedObject deletedThread = threadOpenAiClient.deleteThread(threadId)
+                .join();
+            assertTrue(deletedThread.getDeleted());
+            System.out.println("Thread was deleted: " + deletedThread.getDeleted());
+        }
     }
 
     private String createFile() throws IOException {
