@@ -92,10 +92,10 @@ public class KeyboardService {
                 .keyboardRow(new InlineKeyboardRow(manageGroupFilesButton));
         }
 
-        final InlineKeyboardButton invitePeopleButton = InlineKeyboardButton.builder()
-            .text(i18n.getMessage("keyboard.button.invite.people"))
-            .callbackData(GroupCallback.INVITE_PEOPLE.getData())
-            .build();
+//        final InlineKeyboardButton invitePeopleButton = InlineKeyboardButton.builder() TODO implement invite people feature
+//            .text(i18n.getMessage("keyboard.button.invite.people"))
+//            .callbackData(GroupCallback.INVITE_PEOPLE.getData())
+//            .build();
         final InlineKeyboardButton backButton = InlineKeyboardButton.builder()
             .text(i18n.getMessage("keyboard.button.back"))
             .callbackData(BackCallback.BACK_GROUP_SETTINGS.getData())
@@ -106,7 +106,7 @@ public class KeyboardService {
             .build();
 
         return keyboardBuilder
-            .keyboardRow(new InlineKeyboardRow(invitePeopleButton))
+//            .keyboardRow(new InlineKeyboardRow(invitePeopleButton))
             .keyboardRow(new InlineKeyboardRow(backButton, leaveGroupButton))
             .build();
     }
