@@ -3,6 +3,8 @@ package com.asid.groupmateai.core.services.impl;
 import com.asid.groupmateai.core.ai.openai.clients.ThreadOpenAiClient;
 import com.asid.groupmateai.core.exceptions.ResponseGenerationException;
 import com.asid.groupmateai.core.services.UserThreadService;
+import io.github.sashirestela.openai.common.content.ContentPart;
+import io.github.sashirestela.openai.common.content.FileAnnotation;
 import io.github.sashirestela.openai.domain.assistant.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static io.github.sashirestela.openai.domain.assistant.AssistantTool.FILE_SEARCH;
 import static java.lang.String.format;
 
 @Service
@@ -39,14 +40,14 @@ public class UserThreadServiceImpl implements UserThreadService {
 
         final ThreadRunRequest runRequest = ThreadRunRequest.builder()
             .assistantId(assistantId)
-            .tool(FILE_SEARCH)
+            .tool(AssistantTool.fileSearch())
             .build();
 
         final ThreadRun threadRun = threadClient.runThread(threadId, runRequest).join();
 
         return switch (threadRun.getStatus()) {
             case COMPLETED -> {
-                final ThreadMessageContent messageContent = threadClient.listThreadMessagesByRunId(threadId, threadRun.getId())
+                final ContentPart messageContent = threadClient.listThreadMessagesByRunId(threadId, threadRun.getId())
                     .join()
                     .stream()
                     .findFirst()
@@ -55,11 +56,11 @@ public class UserThreadServiceImpl implements UserThreadService {
                         .findFirst())
                     .orElse(null);
 
-                if (messageContent instanceof ThreadMessageContent.TextContent textContent) {
-                    final ThreadMessageContent.TextContent.TextAnnotation text = textContent.getText();
+                if (messageContent instanceof ContentPart.ContentPartTextAnnotation textContent) {
+                    final ContentPart.ContentPartTextAnnotation.TextAnnotation text = textContent.getText();
                     final String textWithoutAnnotations = removeTextAnnotations(text.getValue(), text.getAnnotations());
                     yield filterMarkdown(textWithoutAnnotations);
-                } else if (messageContent instanceof ThreadMessageContent.ImageFileContent imageContent) {
+                } else if (messageContent instanceof ContentPart.ContentPartImageFile imageContent) {
                     throw new ResponseGenerationException(format("Image content is not supported: %s. User query: %s.",
                             imageContent, messageText));
                 }
