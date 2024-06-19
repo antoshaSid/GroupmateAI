@@ -112,22 +112,22 @@ public class KeyboardService {
     }
 
     public ReplyKeyboardMarkup buildQueryKeyboard() {
-        final KeyboardButton scheduleForMondayQueryButton = KeyboardButton.builder()
-            .text(i18n.getMessage("keyboard.button.query.schedule.for.monday"))
-            .build();
-        final KeyboardButton scheduleForTuesdayQueryButton = KeyboardButton.builder()
-            .text(i18n.getMessage("keyboard.button.query.schedule.for.tuesday"))
-            .build();
-        final KeyboardButton scheduleForWednesdayQueryButton = KeyboardButton.builder()
-            .text(i18n.getMessage("keyboard.button.query.schedule.for.wednesday"))
-            .build();
         final KeyboardButton scheduleForWeekQueryButton = KeyboardButton.builder()
             .text(i18n.getMessage("keyboard.button.query.schedule.for.week"))
             .build();
+        final KeyboardButton deadlinesQueryButton = KeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.query.deadlines"))
+            .build();
+        final KeyboardButton subjectListQueryButton = KeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.query.subject.list"))
+            .build();
+        final KeyboardButton lecturerListQueryButton = KeyboardButton.builder()
+            .text(i18n.getMessage("keyboard.button.query.lecturer.list"))
+            .build();
 
         return ReplyKeyboardMarkup.builder()
-            .keyboardRow(new KeyboardRow(scheduleForMondayQueryButton, scheduleForTuesdayQueryButton, scheduleForWednesdayQueryButton))
-            .keyboardRow(new KeyboardRow(scheduleForWeekQueryButton))
+            .keyboardRow(new KeyboardRow(scheduleForWeekQueryButton, subjectListQueryButton))
+            .keyboardRow(new KeyboardRow(lecturerListQueryButton, deadlinesQueryButton))
             .resizeKeyboard(true)
             .build();
     }
