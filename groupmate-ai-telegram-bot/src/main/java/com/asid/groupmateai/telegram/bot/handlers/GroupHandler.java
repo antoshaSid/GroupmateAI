@@ -296,12 +296,18 @@ public class GroupHandler implements UpdateHandler {
         final Long groupId = groupUserService.getGroupByChatId(chatId)
             .getId();
 
+        final Integer messageId = telegramService.sendMessage(chatId, i18n.getMessage("group.context.update.in.process.message"));
+
+        long startMillis = System.currentTimeMillis();
         groupService.updateGroupContext(groupId)
             .thenAccept(updated -> {
                 if (updated) {
-                    telegramService.sendMessage(chatId, i18n.getMessage("group.context.updated.successfully.message"));
+                    log.info("Group context was updated in {} ms", System.currentTimeMillis() - startMillis);
+                    telegramService.updateMessage(chatId, messageId,
+                        i18n.getMessage("group.context.updated.successfully.message"));
                 } else {
-                    telegramService.sendMessage(chatId, i18n.getMessage("group.context.update.error.message"));
+                    telegramService.updateMessage(chatId, messageId,
+                        i18n.getMessage("group.context.update.error.message"));
                 }
             });
     }
