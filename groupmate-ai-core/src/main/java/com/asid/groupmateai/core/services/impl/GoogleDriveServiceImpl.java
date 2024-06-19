@@ -63,7 +63,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             .setQ("'" + folderId + "' in parents and trashed=false")
             .setSpaces("drive")
             .setFields("files(id, name, mimeType, modifiedTime)")
-            .setPageSize(15) // TODO: Warn about max file number and allowed mime types
+            .setPageSize(30) // TODO: Warn about max file number and allowed mime types
             .execute()
             .getFiles();
     }
